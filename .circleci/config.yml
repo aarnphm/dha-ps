@@ -39,8 +39,8 @@ jobs:
           command: |
             envsubst < ${HOME}/project/deploy/gcp.yml > ${HOME}/gcp.yml
             kubectl apply -f ${HOME}/gcp.yml
-            kubectl rollout status deployment/pr
             kubectl rollout status deployment/ingress
+            kubectl rollout status deployment/pr
 
 workflows:
   build_push_deploy:

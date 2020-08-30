@@ -66,7 +66,7 @@ async def infer(
         res = dataproc.gen_corpus(body=content, ord_body=ord_body, orders_path=None)[0]
         ops = await corpus_services.insert_one_doc(res)
         products_list = await corpus_services.get_all_descriptions()
-        log.debug(f"Product info: {res["description"]}")
+        log.debug(f"Product info: {res['description']}")
         log.debug(f"Product list: {products_list}")
         prediction = model.infer(products_list, res["description"])
         log.debug(f"Elapsed time: {(time.time()-start)*1000:.3f}ms")

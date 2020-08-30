@@ -2,5 +2,6 @@ notebooks/
 **/*.lock
 **/*.toml
 **/*.rst
+**/*.bin
 __init__.py
 .env

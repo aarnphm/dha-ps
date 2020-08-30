@@ -1,9 +1,8 @@
+"""main modules responsible for inference, check out sentence-transformers repo here: https://github.com/UKPLab/sentence-transformers """
 import json
-import multiprocessing
 import os
 import time
 from collections import OrderedDict
-from multiprocessing import Pool, cpu_count
 from typing import Dict, Iterable, List, Tuple, Union
 
 import numpy as np
@@ -12,7 +11,8 @@ from loguru import logger as log
 from torch import Tensor, nn
 from torch.utils.data import DataLoader, Dataset
 
-from price_recommender.nlp.helpers import *
+from price_recommender.nlp.helpers import (MODELS, get_default_cache_path,
+                                           import_from_string, pytorch_cdist)
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
@@ -22,7 +22,7 @@ class SentenceTransformer(nn.Sequential):
     SentenceTransformer : a siamsese NN composed from BERT (DistilBERT)
     """
 
-    # pylint: disable=too-many-locals,invalid-name
+    # pylint: disable=too-many-locals,invalid-name line-too-long
     def __init__(
         self,
         model_name_or_path: str = MODELS,
