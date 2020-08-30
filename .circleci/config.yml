@@ -7,7 +7,7 @@ jobs:
     environment:
       - GOOGLE_PROJECT_ID: "dha-pr"
       - GOOGLE_COMPUTE_ZONE: "us-central1-a"
-      - GOOGLE_CLUSTER_NAME: "dha-pr-cluster"
+      - GOOGLE_CLUSTER_NAME: "pr-cluster"
     steps:
       - checkout
       - run:

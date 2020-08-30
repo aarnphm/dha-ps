@@ -66,12 +66,6 @@ class SentenceTransformer(nn.Sequential):
             log.info("Use {} for running PyTorch".format(device))
 
         self._target_device = torch.device(device)
-        # parallel_tokenization can only used in system that support "fork"
-        self.parallel_tokenization = multiprocessing.get_start_method() == "fork"
-        # of parallel process for tokenization
-        self.parallel_tokenization_processes = min(4, cpu_count())
-        # # of sentences sent per chunk for each process
-        self.parallel_tokenization_chunksize = 5000
 
     def infer(
         self, corpus: List[str], products: str, cluster: int = 5, verbose=False
