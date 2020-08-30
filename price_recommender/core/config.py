@@ -16,9 +16,6 @@ COLOUR_VAL: int = 4
 SIZE: t.Tuple[str] = ("2XS", "XS", "S", "M", "L", "XL", "2XL", "ALL")
 
 DEBUG: bool = os.getenv("DEBUG")
-SECRET_KEY: Secret = os.getenv("SECRET_KEY")
-PROJECT_NAME: str = os.getenv("PROJECT_NAME")
-ALLOWED_HOST: t.List[str] = str(os.getenv("ALLOWED_HOST")).split(",")
 LOGGING_LEVEL = logging.DEBUG if DEBUG else logging.INFO
 LOGGERS = ("uvicorn.asgi", "uvicorn.access")
 

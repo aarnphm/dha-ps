@@ -8,9 +8,7 @@ from price_recommender.core.events import shutdown_handler, startup_handler
 
 def create_server() -> FastAPI:
     """create a new server with FastAPI"""
-    application = FastAPI(
-        debug=config.DEBUG, title=config.PROJECT_NAME, version=config.VERSION
-    )
+    application = FastAPI(debug=True, title="Inference Server", version=config.VERSION)
     application.add_event_handler("startup", startup_handler(application))
     application.add_event_handler("shutdown", shutdown_handler(application))
 
