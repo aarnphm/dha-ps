@@ -4,6 +4,4 @@ __pycache__/
 dist/
 
 .env
-**/*.json
 **/*.csv
-distilbert-base-nli-stsb-mean-tokens

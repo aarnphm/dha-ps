@@ -1,0 +1,1 @@
+{"do_lower_case": true, "model_max_length": 512, "special_tokens_map_file": "output/training_nli_distilbert-base-uncased-2020-07-22_10-20-15/0_Transformer/special_tokens_map.json", "full_tokenizer_file": null}
