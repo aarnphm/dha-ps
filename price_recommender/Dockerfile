@@ -32,4 +32,4 @@ WORKDIR /app
 
 EXPOSE 5000
 
-CMD ["uvicorn","--reload","--host","0.0.0.0","--port","5000","main:app"]
+CMD ["python","main.py"]

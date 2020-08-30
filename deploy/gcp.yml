@@ -22,8 +22,44 @@ spec:
         app: ingress
     spec:
       containers:
-        - image: gcr.io/${GOOGLE_PROJECT_ID}/ingress:${CIRCLE_SHA1}
-          name: ingress
+      - image: gcr.io/${GOOGLE_PROJECT_ID}/ingress:${CIRCLE_SHA1}
+        name: ingress
+        env:
+          - name: APIKEY
+            valueFrom:
+              secretKeyRef:
+                name: ingress
+                key: APIKEY
+          - name: PG_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: ingress
+                key: PG_DATABASE
+          - name: PG_HOST
+            valueFrom:
+              secretKeyRef:
+                name: ingress
+                key: PG_HOST
+          - name: PG_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: ingress
+                key: PG_PASSWORD
+          - name: PG_PORT
+            valueFrom:
+              secretKeyRef:
+                name: ingress
+                key: PG_PORT
+          - name: PG_SEARCHPATH
+            valueFrom:
+              secretKeyRef:
+                name: ingress
+                key: PG_SEARCHPATH
+          - name: PG_USER
+            valueFrom:
+              secretKeyRef:
+                name: ingress
+                key: PG_USER
           resources:
             requests:
               cpu: "250m"
@@ -52,7 +88,7 @@ spec:
   type: LoadBalancer
 
 ---
-### NLP Deployment
+### Price Recommender Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -78,8 +114,34 @@ spec:
         app: pr
     spec:
       containers:
-        - image: gcr.io/${GOOGLE_PROJECT_ID}/pr:${CIRCLE_SHA1}
-          name: pr
+      - image: gcr.io/${GOOGLE_PROJECT_ID}/pr:${CIRCLE_SHA1}
+        name: pr
+        env:
+          - name: ALLOWED_HOST
+            valueFrom:
+              secretKeyRef:
+                name: pr
+                key: ALLOWED_HOST
+          - name: DEBUG
+            valueFrom:
+              secretKeyRef:
+                name: pr
+                key: DEBUG
+          - name: MONGO_URI
+            valueFrom:
+              secretKeyRef:
+                name: pr
+                key: MONGO_URI
+          - name: PROJECT_NAME
+            valueFrom:
+              secretKeyRef:
+                name: pr
+                key: PROJECT_NAME
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: pr
+                key: SECRET_KEY
           resources:
             requests:
               cpu: "250m"
@@ -90,7 +152,7 @@ spec:
       terminationGracePeriodSeconds: 30
 
 ---
-### NLP Service
+### Price Recommender Service
 apiVersion: v1
 kind: Service
 metadata:

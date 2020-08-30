@@ -19,7 +19,7 @@ FROM alpine:latest
 # copy from build images to container
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /go/bin/app /go/bin/app
-COPY --from=builder /app/src/configs configs/
+
 # expose PORT
 EXPOSE 8080
 

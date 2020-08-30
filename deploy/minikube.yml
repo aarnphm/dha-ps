@@ -24,6 +24,42 @@ spec:
       containers:
       - image: aar0npham/dha-pr-ingress:latest
         name: ingress
+        env:
+          - name: APIKEY
+            valueFrom:
+              secretKeyRef:
+                name: ingress
+                key: APIKEY
+          - name: PG_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: ingress
+                key: PG_DATABASE
+          - name: PG_HOST
+            valueFrom:
+              secretKeyRef:
+                name: ingress
+                key: PG_HOST
+          - name: PG_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: ingress
+                key: PG_PASSWORD
+          - name: PG_PORT
+            valueFrom:
+              secretKeyRef:
+                name: ingress
+                key: PG_PORT
+          - name: PG_SEARCHPATH
+            valueFrom:
+              secretKeyRef:
+                name: ingress
+                key: PG_SEARCHPATH
+          - name: PG_USER
+            valueFrom:
+              secretKeyRef:
+                name: ingress
+                key: PG_USER
         imagePullPolicy: Always
         resources:
           requests:
@@ -38,24 +74,24 @@ spec:
 
 ---
 ### Ingress Service
-apiVersion: "v1"
-kind: "Service"
+apiVersion: v1
+kind: Service
 metadata:
-  name: "ingress-service"
-  namespace: "default"
+  name: ingress-service
+  namespace: default
   labels:
-    app: "ingress"
+    app: ingress
 spec:
   ports:
-  - protocol: "TCP"
+  - protocol: TCP
     port: 80
     targetPort: 8080
   selector:
-    app: "ingress"
-  type: "LoadBalancer"
+    app: ingress
+  type: LoadBalancer
 
 ---
-### NLP Deployment
+### Price Recommender Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -84,6 +120,32 @@ spec:
       - image: aar0npham/dha-pr:with-nocuda
         imagePullPolicy: Always
         name: pr
+        env:
+          - name: ALLOWED_HOST
+            valueFrom:
+              secretKeyRef:
+                name: pr
+                key: ALLOWED_HOST
+          - name: DEBUG
+            valueFrom:
+              secretKeyRef:
+                name: pr
+                key: DEBUG
+          - name: MONGO_URI
+            valueFrom:
+              secretKeyRef:
+                name: pr
+                key: MONGO_URI
+          - name: PROJECT_NAME
+            valueFrom:
+              secretKeyRef:
+                name: pr
+                key: PROJECT_NAME
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: pr
+                key: SECRET_KEY
         resources:
           requests:
             cpu: "250m"
@@ -96,7 +158,7 @@ spec:
       terminationGracePeriodSeconds: 30
 
 ---
-### NLP Service
+### Price Recommender Service
 apiVersion: v1
 kind: Service
 metadata:

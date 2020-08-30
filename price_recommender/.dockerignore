@@ -3,3 +3,4 @@ notebooks/
 **/*.toml
 **/*.rst
 __init__.py
+.env

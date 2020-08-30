@@ -26,10 +26,10 @@ ingress-dev: ## Run ingress (with reflex to reload when detected changes)
 	reflex --decoration=fancy -s -r '\.go$$' $(MAKE) ingress-run
 
 pr-dev: ## runs python inference server with FastAPI
-	uvicorn price_recommender.main:app --workers 8 --reload --port 5000
+	uvicorn price_recommender.main:app --workers 8 --reload --port 5050 --host 0.0.0.0
 
-dev: build ## run both watch-pr and watch-ingress
-	$(MAKE) -j 2 pr-dev ingress-dev 
+dev: build ## runs dev locally
+	$(MAKE) -j 2 ingress-dev pr-dev
 
 docker-%: ## build, run, push with configuration
 	docker-compose -f deploy/docker-compose.yml $*

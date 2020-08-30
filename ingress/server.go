@@ -21,7 +21,6 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/rakyll/statik/fs"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 const port = 8080
@@ -79,10 +78,6 @@ func main() {
 }
 
 func init() {
-	viper.SetConfigFile("configs/postgres.json")
-	if err := viper.ReadInConfig(); err != nil {
-		panic(err)
-	}
 	db = initConnectionPool()
 }
 
@@ -99,12 +94,12 @@ func createServer(addr string, router http.Handler) *http.Server {
 
 func initConnectionPool() *sqlx.DB {
 	// get connection string
-	dbHost := viper.GetString(`PG_HOST`)
-	dbUser := viper.GetString(`PG_USER`)
-	dbPass := viper.GetString(`PG_PASSWORD`)
-	dbPort := viper.GetString(`PG_PORT`)
-	dbName := viper.GetString(`PG_DATABASE`)
-	dbSP := viper.GetString(`PG_SEARCHPATH`)
+	dbHost := os.Getenv(`PG_HOST`)
+	dbUser := os.Getenv(`PG_USER`)
+	dbPass := os.Getenv(`PG_PASSWORD`)
+	dbPort := os.Getenv(`PG_PORT`)
+	dbName := os.Getenv(`PG_DATABASE`)
+	dbSP := os.Getenv(`PG_SEARCHPATH`)
 	var cnnstr string = fmt.Sprintf("host=%s user=%s password=%s port=%s database=%s search_path=%s sslmode=disable",
 		dbHost, dbUser, dbPass, dbPort, dbName, dbSP)
 	log.Info("Attempting to connect via URI")
