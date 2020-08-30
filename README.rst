@@ -27,7 +27,15 @@ Instruction for local development
     kubernetes           ClusterIP      10.0.0.1     <none>            443/TCP           38h
     recommender-service  NodePort       10.0.3.13    <none>            30000:32610/TCP   71s
 
--  One note that ``EXTERNAL-IP`` will be configured depends on each cloud provider. If using minikube just run ``minikube service ingress-service``
+-  One note that ``EXTERNAL-IP`` will be configured depends on each cloud provider. If using minikube just run ``minikube service ingress-service``, then you should receive
+
+
+.. code-block:: json
+
+    "ProxyAlive":true,
+    "StreamAlive":true
+
+-  You can access ``/swaggerui/`` for API endpoints docs
 -  Included a cuda-enabled images ``for price_recommender``.  Make sure you have nvidia-docker_ install. After do so run:
 
 .. code-block:: sh
@@ -69,6 +77,7 @@ Todo
 
 -  ☐ k8s deployment
 -  ☐ running model in browser?
+-  ☐ makes swagger functionable with k8s
 -  ☒ generate godoc
 -  ☒ prepare info from db for inference
 -  ☒ streamline ``product_info`` into python server
@@ -82,8 +91,8 @@ Todo
 
 .. _nlp/net.py: pr/nlp/net.py
 
-.. |CircleCI| image:: https://circleci.com/gh/aarnphm/dha-pr/tree/master.svg?style=svg
-   :target: https://circleci.com/gh/aarnphm/dha-pr
+.. |CircleCI| image:: https://circleci.com/gh/aarnphm/dha-ps/tree/master.svg?style=svg
+   :target: https://circleci.com/gh/aarnphm/dha-ps
 
 .. |PkgGoDev| image:: https://pkg.go.dev/badge/mod/github.com/aarnphm/dha-pr/ingress
    :target: https://pkg.go.dev/mod/github.com/aarnphm/dha-pr/ingress
