@@ -44,6 +44,10 @@ Instruction for local development
     docker build -t aar0npham/dha-pr:with-cuda -f build/with-cuda.dockerfile .
     docker run -it --gpus=all -p 5000:5000 aar0npham/dha-pr:with-cuda
 
+- Below is an example with `minikube`_:
+
+.. figure:: deploy/minikube.gif
+   :alt: minikube example
 
 Notes
 -----
@@ -75,6 +79,9 @@ Todo
 -  ☒ added rate limiter for middleware
 -  ☒ Find a model that fits with the requirement
 -  ☒ Train on another dataset
+
+.. _minikube: image:: https://asciinema.org/a/8rztottpt8A58y2NtGUIhRERs.svg
+   :target: https://asciinema.org/a/8rztottpt8A58y2NtGUIhRERs
 
 .. _nvidia-docker: https://github.com/NVIDIA/nvidia-docker
 
