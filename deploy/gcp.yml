@@ -60,9 +60,9 @@ spec:
             secretKeyRef:
               name: ingress
               key: PG_USER
-          resources:
-            requests:
-              cpu: "250m"
+        resources:
+          requests:
+            cpu: "250m"
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -142,9 +142,9 @@ spec:
             secretKeyRef:
               name: pr
               key: SECRET_KEY
-          resources:
-            requests:
-              cpu: "250m"
+        resources:
+          requests:
+            cpu: "250m"
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
