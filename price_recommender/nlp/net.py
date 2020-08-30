@@ -10,6 +10,7 @@ import numpy as np
 import torch
 from loguru import logger as log
 from torch import Tensor, nn
+from torch.utils.data import DataLoader, Dataset
 
 from price_recommender.nlp.helpers import *
 
@@ -81,7 +82,7 @@ class SentenceTransformer(nn.Sequential):
         cos_scores = pytorch_cdist(product_embeddings, corpus_embeddings)[0]
         cos_scores = cos_scores.to("cpu").numpy()
         res = np.argpartition(-cos_scores, range(cluster))[0:cluster]
-        for idx in res[0 : cluster + 2]:
+        for idx in res[0:cluster]:
             closest[str(cos_scores[idx])] = corpus[idx].strip()
         if verbose:
             log.info("embedding took : {:.4f}s".format(emb_time))
@@ -95,11 +96,13 @@ class SentenceTransformer(nn.Sequential):
     def encode(
         self,
         sentences: Union[str, List[str], List[int]],
-        batch_size: int = 8,
+        batch_size: int = 32,
         output_value: str = "sentence_embedding",
         to_numpy: bool = True,
         to_tensor: bool = False,
+        device: str = None,
         is_pretokenized: bool = False,
+        num_workers: int = 0,
     ) -> Union[List[Tensor], np.ndarray, Tensor]:
         """
         Computes sentence embedding
@@ -110,65 +113,44 @@ class SentenceTransformer(nn.Sequential):
          Can set to `token_embedding` to get wordpiece token embedding
         :param to_numpy: convert result to a list of numpy vectors, else PyTorch vectors
         :param to_tensor: if true, get one large tensor, overwrite `to_numpy`
+        :param device: set which device to use for torch.device
         :param is_pretokenized: if true, sentences must be a list of int, containing tokenized
          sentences with each token convert to respective int
+        :param num_workers: background worker to tokenize data
+        :return:
+            Default will return a list of tensor, if `convert_to_tensor` a list of tensor is returned, else a numpy matrix
         """
         self.eval()
+
+        input_was_string = False
         if isinstance(sentences, str):
             sentences = [sentences]
+            input_was_string = True
+
+        if device is None:
+            device = self._target_device
+
+        self.to(device)
+
         all_embeddings = []
-        if is_pretokenized:
-            sentences_tokenized = sentences
-        else:
-            if (
-                not self.parallel_tokenization
-                or len(sentences) < self.parallel_tokenization_chunksize
-            ):
-                sentences_tokenized = [self.tokenize(sen) for sen in sentences]
-            else:
-                log.info(
-                    "Multiprocess tokenization with {} workers".format(
-                        self.parallel_tokenization_processes
-                    )
-                )
-                self.to("cpu")
-                with Pool(self.parallel_tokenization_processes) as pool:
-                    sentences_tokenized = list(
-                        pool.imap(
-                            self.tokenize,
-                            sentences,
-                            chunksize=self.parallel_tokenization_chunksize,
-                        )
-                    )
-        self.to(self._target_device)
         length_sorted_idx = np.argsort([len(sen) for sen in sentences])
+        sentences_sorted = [sentences[idx] for idx in length_sorted_idx]
+        inp_dataset = EncodeDataset(
+            sentences_sorted, model=self, is_tokenized=is_pretokenized
+        )
+        inp_dataloader = DataLoader(
+            inp_dataset,
+            batch_size=batch_size,
+            collate_fn=self.smart_batching_collate_text_only,
+            num_workers=num_workers,
+            shuffle=False,
+        )
 
-        for batch_idx in range(0, len(sentences), batch_size):
-            batch_tokens = []
+        iterator = inp_dataloader
 
-            batch_start = batch_idx
-            batch_end = min(batch_start + batch_size, len(sentences))
-
-            longest_seq = 0
-
-            for idx in length_sorted_idx[batch_start:batch_end]:
-                tokens = sentences_tokenized[idx]
-                longest_seq = max(longest_seq, len(tokens))
-                batch_tokens.append(tokens)
-
-            features = {}
-            for text in batch_tokens:
-                sentence_features = self.get_sentence_features(text, longest_seq)
-
-                for feature_name in sentence_features:
-                    if feature_name not in features:
-                        features[feature_name] = []
-                    features[feature_name].append(sentence_features[feature_name])
-
+        for features in iterator:
             for feature_name in features:
-                features[feature_name] = torch.cat(features[feature_name]).to(
-                    self._target_device
-                )
+                features[feature_name] = features[feature_name].to(device)
 
             with torch.no_grad():
                 out_features = self.forward(features)
@@ -184,8 +166,7 @@ class SentenceTransformer(nn.Sequential):
 
                 all_embeddings.extend(embeddings)
 
-        reverting_order = np.argsort(length_sorted_idx)
-        all_embeddings = [all_embeddings[idx] for idx in reverting_order]
+        all_embeddings = [all_embeddings[idx] for idx in np.argsort(length_sorted_idx)]
 
         if to_tensor:
             all_embeddings = torch.stack(all_embeddings)
@@ -194,7 +175,35 @@ class SentenceTransformer(nn.Sequential):
                 [emb.cpu().detach().numpy() for emb in all_embeddings]
             )
 
+        if input_was_string:
+            all_embeddings = all_embeddings[0]
+
         return all_embeddings
+
+    def smart_batching_collate_text_only(self, batch):
+        """
+        Transforms a batch from a SmartBatchingDataset to a batch of tensors for the model
+        :param batch:
+            a batch from a SmartBatchingDataset
+        :return:
+            a batch of tensors for the model
+        """
+
+        max_seq_len = max([len(text) for text in batch])
+        feature_lists = {}
+
+        for text in batch:
+            sentence_features = self.get_sentence_features(text, max_seq_len)
+            for feature_name in sentence_features:
+                if feature_name not in feature_lists:
+                    feature_lists[feature_name] = []
+
+                feature_lists[feature_name].append(sentence_features[feature_name])
+
+        for feature_name in feature_lists:
+            feature_lists[feature_name] = torch.cat(feature_lists[feature_name])
+
+        return feature_lists
 
     def save(self, path):
         if path is None:
@@ -243,6 +252,29 @@ class SentenceTransformer(nn.Sequential):
         """property to set the tokenizer that is used by this model"""
         self._first_module().tokenizer = value
 
+    @property
+    def max_seq_length(self):
+        """
+        Property to get the maximal input sequence length for the model. Longer inputs will be truncated.
+        """
+        return self._first_module().max_seq_length
+
+    @max_seq_length.setter
+    def max_seq_length(self, value):
+        """
+        Property to set the maximal input sequence length for the model. Longer inputs will be truncated.
+        """
+        self._first_module().max_seq_length = value
+
+    def get_max_seq_length(self):
+        """
+        Returns the maximal sequence length for input the model accepts. Longer inputs will be truncated
+        """
+        if hasattr(self._first_module(), "max_seq_length"):
+            return self._first_module().max_seq_length
+
+        return None
+
     # property function to implements from transformers
     def tokenize(self, text):
         return self._first_module().tokenize(text)
@@ -258,3 +290,29 @@ class SentenceTransformer(nn.Sequential):
 
     def _last_module(self):
         return self._modules[next(reversed(self._modules))]
+
+
+class EncodeDataset(Dataset):
+    def __init__(
+        self,
+        sentences: Union[List[str], List[int]],
+        model: SentenceTransformer,
+        is_tokenized: bool = True,
+    ):
+        """
+        EncodeDataset is used by SentenceTransformer.encode method. It just stores
+        the input texts and returns a tokenized version of it.
+        """
+        self.model = model
+        self.sentences = sentences
+        self.is_tokenized = is_tokenized
+
+    def __getitem__(self, item):
+        return (
+            self.sentences[item]
+            if self.is_tokenized
+            else self.model.tokenize(self.sentences[item])
+        )
+
+    def __len__(self):
+        return len(self.sentences)

@@ -8,7 +8,8 @@ from starlette.responses import JSONResponse
 from price_recommender.internal.domains.attributes import AttributesOrder
 from price_recommender.internal.domains.products import ProductsCorpus
 from price_recommender.internal.repository import processing as dataproc
-from price_recommender.internal.repository.drivers import AsyncIOMotorClient, get_database
+from price_recommender.internal.repository.drivers import (AsyncIOMotorClient,
+                                                           get_database)
 from price_recommender.internal.repository.mongodb.corpus import CorpusServices
 from price_recommender.internal.repository.mongodb.orders import OrderServices
 
@@ -65,6 +66,8 @@ async def infer(
         res = dataproc.gen_corpus(body=content, ord_body=ord_body, orders_path=None)[0]
         ops = await corpus_services.insert_one_doc(res)
         products_list = await corpus_services.get_all_descriptions()
+        log.debug(f"Product info: {res["description"]}")
+        log.debug(f"Product list: {products_list}")
         prediction = model.infer(products_list, res["description"])
         log.debug(f"Elapsed time: {(time.time()-start)*1000:.3f}ms")
         return JSONResponse(content=prediction)
