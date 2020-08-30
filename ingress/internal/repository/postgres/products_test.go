@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/aarnphm/dha-pr/ingress/internal/models"
+	"github.com/aarnphm/dha-ps/ingress/internal/models"
 	"github.com/jmoiron/sqlx"
 
-	repository "github.com/aarnphm/dha-pr/ingress/internal/repository/postgres"
+	repository "github.com/aarnphm/dha-ps/ingress/internal/repository/postgres"
 	"github.com/stretchr/testify/assert"
 )
 

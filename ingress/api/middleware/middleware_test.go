@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/aarnphm/dha-pr/ingress/api/middleware"
+	"github.com/aarnphm/dha-ps/ingress/api/middleware"
 	log "github.com/sirupsen/logrus"
 )
 

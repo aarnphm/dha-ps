@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/aarnphm/dha-pr/ingress/api/httputil"
-	"github.com/aarnphm/dha-pr/ingress/api/middleware"
-	"github.com/aarnphm/dha-pr/ingress/internal/models"
+	"github.com/aarnphm/dha-ps/ingress/api/httputil"
+	"github.com/aarnphm/dha-ps/ingress/api/middleware"
+	"github.com/aarnphm/dha-ps/ingress/internal/models"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )

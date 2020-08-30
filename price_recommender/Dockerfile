@@ -11,8 +11,9 @@ COPY ./requirements.txt /requirements.txt
 RUN apt-get update && \
     apt-get install -y -qq ca-certificates gcc make && \
     apt-get clean && \
-    pip install --prefix=/install uvicorn fastapi transformers[torch] \
-        torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html && \
+    pip install --prefix=/install  \
+        torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html \
+        uvicorn fastapi transformers && \
     pip install --prefix=/install -r /requirements.txt && \
     rm -rf /var/lib/apt/lists/*
 

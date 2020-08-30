@@ -1,4 +1,4 @@
-module github.com/aarnphm/dha-pr/ingress
+module github.com/aarnphm/dha-ps/ingress
 
 go 1.14
 

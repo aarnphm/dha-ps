@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/aarnphm/dha-pr/ingress/internal/models"
-	repository "github.com/aarnphm/dha-pr/ingress/internal/repository/postgres"
+	"github.com/aarnphm/dha-ps/ingress/internal/models"
+	repository "github.com/aarnphm/dha-ps/ingress/internal/repository/postgres"
 	"github.com/c2fo/testify/assert"
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"

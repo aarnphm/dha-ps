@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/aarnphm/dha-pr/ingress/api/httputil"
+	"github.com/aarnphm/dha-ps/ingress/api/httputil"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )

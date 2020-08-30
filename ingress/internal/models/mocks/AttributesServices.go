@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	models "github.com/aarnphm/dha-pr/ingress/internal/models"
+	models "github.com/aarnphm/dha-ps/ingress/internal/models"
 	mock "github.com/stretchr/testify/mock"
 )
 

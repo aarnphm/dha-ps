@@ -1,7 +1,7 @@
 // Package docs defines swagger docs for API specification
 package docs
 
-import "github.com/aarnphm/dha-pr/ingress/api/handlers"
+import "github.com/aarnphm/dha-ps/ingress/api/handlers"
 
 // swagger:route POST /api/v1/attributes/ attributes attrsList
 //

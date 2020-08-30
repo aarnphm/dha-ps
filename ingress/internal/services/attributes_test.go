@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aarnphm/dha-pr/ingress/internal/models"
-	"github.com/aarnphm/dha-pr/ingress/internal/models/mocks"
-	"github.com/aarnphm/dha-pr/ingress/internal/services"
+	"github.com/aarnphm/dha-ps/ingress/internal/models"
+	"github.com/aarnphm/dha-ps/ingress/internal/models/mocks"
+	"github.com/aarnphm/dha-ps/ingress/internal/services"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

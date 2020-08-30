@@ -3,7 +3,7 @@ package postgres
 import (
 	"context"
 
-	"github.com/aarnphm/dha-pr/ingress/internal/models"
+	"github.com/aarnphm/dha-ps/ingress/internal/models"
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
 )

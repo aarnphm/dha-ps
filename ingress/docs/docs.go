@@ -6,7 +6,7 @@
 //     Host: localhost:8080
 //     BasePath: /
 //     Version: 0.0.1-dev
-//     License: Apache 2.0 https://github.com/aarnphm/dha-pr/blob/master/LICENSE
+//     License: Apache 2.0 https://github.com/aarnphm/dha-ps/blob/master/LICENSE
 //     Contact: Aaron Pham<aaronpham0103@gmail.com>
 //
 //     Consumes:

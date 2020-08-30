@@ -50,7 +50,7 @@ todo
 -  ☐ **finish test code**
 -  ☒ improved Swagger docs with more detailed response model
 
-.. _main README.rst: https://github.com/aarnphm/dha-pr/blob/master/README.rst
+.. _main README.rst: https://github.com/aarnphm/dha-ps/blob/master/README.rst
 
 .. _twelve-factor app: https://12factor.net/
 
@@ -60,8 +60,8 @@ todo
 
 .. _jmoiron/sqlx: https://github.com/jmoiron/sqlx
 
-.. |PkgGoDev| image:: https://pkg.go.dev/badge/mod/github.com/aarnphm/dha-pr/ingress
-   :target: https://pkg.go.dev/mod/github.com/aarnphm/dha-pr/ingress
+.. |PkgGoDev| image:: https://pkg.go.dev/badge/mod/github.com/aarnphm/dha-ps/ingress
+   :target: https://pkg.go.dev/mod/github.com/aarnphm/dha-ps/ingress
    
-.. |Go Report Card| image:: https://goreportcard.com/badge/github.com/aar0npham/dha-pr
-   :target: https://goreportcard.com/report/github.com/aar0npham/dha-pr
+.. |Go Report Card| image:: https://goreportcard.com/badge/github.com/aar0npham/dha-ps
+   :target: https://goreportcard.com/report/github.com/aar0npham/dha-ps

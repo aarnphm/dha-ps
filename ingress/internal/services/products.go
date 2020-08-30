@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/aarnphm/dha-pr/ingress/internal/models"
+	"github.com/aarnphm/dha-ps/ingress/internal/models"
 	log "github.com/sirupsen/logrus"
 )
 
