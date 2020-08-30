@@ -1,0 +1,51 @@
+version: 2.1
+
+jobs:
+  build_deploy:
+    docker:
+      - image: google/cloud-sdk
+    environment:
+      - GOOGLE_PROJECT_ID: "dha-pr"
+      - GOOGLE_COMPUTE_ZONE: "us-central1-a"
+      - GOOGLE_CLUSTER_NAME: "dha-pr-cluster"
+    steps:
+      - checkout
+      - run:
+          name: Setup GCP SDK
+          command: |
+            apt-get install -qq -y gettext
+            echo $GCLOUD_SERVICE_KEY > ${HOME}/circleci-service-key.json
+            gcloud auth activate-service-account --key-file=${HOME}/circleci-service-key.json
+            gcloud config set project ${GOOGLE_PROJECT_ID}
+            gcloud config set compute/zone ${GOOGLE_COMPUTE_ZONE}
+            gcloud container clusters get-credentials ${GOOGLE_CLUSTER_NAME}
+      - setup_remote_docker
+      - run:
+          name: Building Ingress Docker Images
+          command: |
+            docker build -t gcr.io/${GOOGLE_PROJECT_ID}/ingress:${CIRCLE_SHA1} ingress
+      - run:
+          name: Building Price Recommender Docker Images
+          command: |
+            docker build -t gcr.io/${GOOGLE_PROJECT_ID}/pr:${CIRCLE_SHA1} price_recommender
+      - run:
+          name: Push Both Images to Container Registry
+          command: |
+            gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://gcr.io
+            docker push gcr.io/${GOOGLE_PROJECT_ID}/ingress:${CIRCLE_SHA1}
+            docker push gcr.io/${GOOGLE_PROJECT_ID}/pr:${CIRCLE_SHA1}
+      - run:
+          name: Deploy to Kubernetes
+          command: |
+            envsubst < ${HOME}/project/deploy/gcp.yml > ${HOME}/gcp.yml
+            kubectl apply -f ${HOME}/gcp.yml
+            kubectl rollout status deployment/pr
+            kubectl rollout status deployment/ingress
+
+workflows:
+  build_push_deploy:
+    jobs:
+      - build_deploy:
+          filters:
+            branches:
+              only: master

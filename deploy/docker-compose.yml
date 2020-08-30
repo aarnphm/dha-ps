@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  ingress:
+    build:
+      context: ../ingress
+      dockerfile: Dockerfile
+    image: aar0npham/dha-pr-ingress:latest
+    ports:
+      - 8080:8080
+    networks:
+      - backend
+    links:
+      - pr-nocuda
+    restart: always
+  pr-nocuda:
+    build:
+      context: ../price_recommender
+      dockerfile: Dockerfile
+    image: aar0npham/dha-pr:with-nocuda
+    ports:
+      - 5000:5000
+    networks:
+      - backend
+    restart: always
+
+networks:
+  backend:
+    driver: "bridge"

@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "pr"
+version = "0.0.1-dev"
+description = "nlp server performing semantic search for product similarity"
+authors = ["aar0npham <aaronpham0103@gmail.com>"]
+license = "Apache-2.0"
+
+[tool.poetry.dependencies]
+python = ">=3.7"
+pandas = "^1.1.1"
+motor = "^2.2.0"
+pymongo = "^3.11.0"
+python-dotenv = "^0.14.0"
+loguru = "^0.5.1"
+dnspython = "^2.0.0"
+Pillow = "^7.2.0"
+
+[tool.poetry.dev-dependencies]
+transformers = "^3.0.2"
+onnx = "^1.7.0"
+tqdm = "^4.48.2"
+pydantic = "^1.6.1"
+starlette = "^0.13.6"
+torch = "^1.6.0"
+uvicorn = "^0.11.8"
+fastapi = "^0.61.0"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

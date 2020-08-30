@@ -1,0 +1,5 @@
+notebooks/
+**/*.lock
+**/*.toml
+**/*.rst
+__init__.py
