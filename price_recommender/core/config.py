@@ -15,8 +15,7 @@ SIZE_VAL: int = 30
 COLOUR_VAL: int = 4
 SIZE: t.Tuple[str] = ("2XS", "XS", "S", "M", "L", "XL", "2XL", "ALL")
 
-DEBUG: bool = os.getenv("DEBUG")
-LOGGING_LEVEL = logging.DEBUG if DEBUG else logging.INFO
+LOGGING_LEVEL = logging.DEBUG
 LOGGERS = ("uvicorn.asgi", "uvicorn.access")
 
 MONGO_URI: str = str(os.getenv("MONGO_URI"))
