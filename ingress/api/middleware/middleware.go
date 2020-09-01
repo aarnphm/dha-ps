@@ -36,6 +36,8 @@ type Visitor struct {
 // LogRoute prettyprints requested routes
 func LogRoute(req http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Allow CORS
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		log.Printf("[URI]: %s", r.URL.String())
 		req.ServeHTTP(w, r)
 	})

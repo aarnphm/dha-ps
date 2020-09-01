@@ -44,6 +44,10 @@ func main() {
 
 	// Create new mux router and api subrouter
 	r := mux.NewRouter().StrictSlash(true)
+	// products API starts here
+	r.Use(middleware.LogRoute)
+	r.HandleFunc("/", handlers.Health)
+
 	// serve docs here
 	staticFS, err := fs.New()
 	if err != nil {
@@ -52,9 +56,6 @@ func main() {
 	staticServer := http.FileServer(staticFS)
 	r.PathPrefix("/swaggerui/").Handler(http.StripPrefix("/swaggerui/", staticServer))
 
-	// products API starts here
-	r.Use(middleware.LogRoute)
-	r.HandleFunc("/", handlers.Health)
 	// versioning
 	api := r.PathPrefix("/api/v1").Subrouter()
 	// define repo layer
