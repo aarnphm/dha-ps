@@ -16,7 +16,7 @@ dnspython = "^2.0.0"
 Pillow = "^7.2.0"
 
 [tool.poetry.dev-dependencies]
-transformers = "^3.0.2"
+transformers = "3.0.2"
 onnx = "^1.7.0"
 tqdm = "^4.48.2"
 pydantic = "^1.6.1"

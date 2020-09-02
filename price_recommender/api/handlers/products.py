@@ -68,10 +68,9 @@ async def infer_product(
         products_list = await corpus_services.get_all_descriptions()
         log.debug(f"Product info: {res['description']}")
         log.debug(f"Product list: {products_list}")
-        prediction = model.infer(products_list, res["description"])
+        prediction = model.infer(corpus=products_list, products=res["description"])
         log.debug(f"Elapsed time: {(time.time()-start)*1000:.3f}ms")
         return JSONResponse(content=prediction)
     except Exception as exception:
         log.error(exception)
         raise exception
-        # return {"internal error": True}
