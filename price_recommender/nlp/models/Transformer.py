@@ -1,6 +1,5 @@
 """HuggingFace AutoModel to load BERT"""
 import json
-import logging
 import os
 from typing import Dict, List, Optional
 
@@ -11,6 +10,11 @@ from transformers import AutoConfig, AutoModel, AutoTokenizer
 class Transformer(nn.Module):
     """Huggingface AutoModel to generate token embeddings.
     Loads the correct class, e.g. BERT / RoBERTa etc.
+    :param model_name_or_path: Huggingface models name (https://huggingface.co/models)
+    :param max_seq_length: Truncate any inputs longer than max_seq_length
+    :param model_args: Arguments (key, value pairs) passed to the Huggingface Transformers model
+    :param cache_dir: Cache dir for Huggingface Transformers to store/load models
+    :param tokenizer_args: Arguments (key, value pairs) passed to the Huggingface Tokenizer model
     :param tokenizer_args: Dict with parameters which are passed to the tokenizer.
     """
 
@@ -86,7 +90,7 @@ class Transformer(nn.Module):
         return self.tokenizer.prepare_for_model(
             tokens,
             max_length=pad_seq_length,
-            padding=True,
+            pad_to_max_length=True,
             return_tensors="pt",
             truncation=True,
         )
