@@ -41,6 +41,16 @@ func LogRoute(req http.Handler) http.Handler {
 	})
 }
 
+// CORS handles cors request
+func CORS(req http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type")
+		req.ServeHTTP(w, r)
+	})
+}
+
 // RateLimiter is the middleware to prevent a single IP to overload the server by performing too many req
 func RateLimiter(req http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -63,12 +63,6 @@ def pytorch_cdist(a: Tensor, b: Tensor) -> Tensor:
     :param a,b: input tensor
     :return: tensor[i][j] = cos_sim(a[i],b[j])
     """
-    if not isinstance(a, torch.Tensor):
-        a = torch.tensor(a)
-
-    if not isinstance(b, torch.Tensor):
-        b = torch.tensor(b)
-
     if len(a.shape) == 1:
         a = a.unsqueeze(0)
     if len(b.shape) == 1:

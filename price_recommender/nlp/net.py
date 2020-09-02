@@ -46,11 +46,6 @@ class SentenceTransformer(nn.Sequential):
         API=True,
     ):
         self.model_name = MODELS
-        if modules is not None and not isinstance(modules, OrderedDict):
-            modules = OrderedDict(
-                [(str(idx), module) for idx, module in enumerate(modules)]
-            )
-
         assert (
             model_name_or_path is not None and model_name_or_path != ""
         ), "You forgot to include distilBERT =("
@@ -76,10 +71,14 @@ class SentenceTransformer(nn.Sequential):
             module = module_class.load(os.path.join(model_path, module_config["path"]))
             modules[module_config["name"]] = module
 
+        if modules is not None and not isinstance(modules, OrderedDict):
+            modules = OrderedDict(
+                [(str(idx), module) for idx, module in enumerate(modules)]
+            )
         super().__init__(modules)
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
-            log.info("Use {} for running PyTorch".format(device))
+        log.info("Use {} for running PyTorch".format(device))
 
         self._target_device = torch.device(device)
 
@@ -102,15 +101,15 @@ class SentenceTransformer(nn.Sequential):
             emb_time = time.time() - start
 
             cos_scores = pytorch_cdist(product_embeddings, corpus_embeddings)[0]
-            cos_scores = cos_scores.cpu().numpy()
+            cos_scores = cos_scores.cpu()
             res = np.argpartition(-cos_scores, range(cluster))[0:cluster]
             if verbose:
                 log.info("embedding took : {:.4f}s".format(emb_time))
-                log.info(f"\n\n{'='*150}\n\n")
+                log.info(f"\n\n{'='*50}\n\n")
                 log.info("Input: {}".format(product))
                 log.info("Clusters of {} similar products:".format(cluster))
             for idx in res[0:cluster]:
-                closest[cos_scores[idx]] = corpus[idx].strip()
+                closest[str(cos_scores[idx])] = corpus[idx].strip()
                 if verbose:
                     log.info(
                         f"Desc: {corpus[idx].strip()} | Scores: {cos_scores[idx]:.4f}"
