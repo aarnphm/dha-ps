@@ -1,3 +1,4 @@
+"""helpers for net.py"""
 import os
 import shutil
 from zipfile import ZipFile
@@ -28,7 +29,7 @@ def get_default_cache_path(model_name_or_path: str = MODELS):
         )
     default_model_path = os.path.join(torch_cache_home, MODELS)
 
-    if os.path.exists(model_name_or_path) or not os.path.exists(default_model_path):
+    if not os.path.exists(model_name_or_path) or not os.path.exists(default_model_path):
         log.info("Downloading model from server...")
         model_url = DOWNLOAD_URL + model_name_or_path + ".zip"
 
@@ -62,6 +63,12 @@ def pytorch_cdist(a: Tensor, b: Tensor) -> Tensor:
     :param a,b: input tensor
     :return: tensor[i][j] = cos_sim(a[i],b[j])
     """
+    if not isinstance(a, torch.Tensor):
+        a = torch.tensor(a)
+
+    if not isinstance(b, torch.Tensor):
+        b = torch.tensor(b)
+
     if len(a.shape) == 1:
         a = a.unsqueeze(0)
     if len(b.shape) == 1:

@@ -1,18 +1,34 @@
 """main modules responsible for inference, check out sentence-transformers repo here: https://github.com/UKPLab/sentence-transformers """
 import json
+import logging
+import math
 import os
+import queue
 import time
 from collections import OrderedDict
 from typing import Dict, Iterable, List, Tuple, Union
 
 import numpy as np
 import torch
+import torch.multiprocessing as mp
 from loguru import logger as log
 from torch import Tensor, nn
 from torch.utils.data import DataLoader, Dataset
 
-from price_recommender.nlp.helpers import (MODELS, get_default_cache_path,
-                                           import_from_string, pytorch_cdist)
+try:
+    from price_recommender.nlp.helpers import (
+        MODELS,
+        get_default_cache_path,
+        import_from_string,
+        pytorch_cdist,
+    )
+except ImportError:
+    from helpers import (
+        MODELS,
+        get_default_cache_path,
+        import_from_string,
+        pytorch_cdist,
+    )
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
@@ -22,7 +38,6 @@ class SentenceTransformer(nn.Sequential):
     SentenceTransformer : a siamsese NN composed from BERT (DistilBERT)
     """
 
-    # pylint: disable=too-many-locals,invalid-name line-too-long
     def __init__(
         self,
         model_name_or_path: str = MODELS,
@@ -69,27 +84,37 @@ class SentenceTransformer(nn.Sequential):
         self._target_device = torch.device(device)
 
     def infer(
-        self, corpus: List[str], products: str, cluster: int = 5, verbose=False
+        self,
+        corpus: List[str],
+        products: Union[str, List[str]],
+        cluster: int = 5,
+        verbose=False,
     ) -> Dict[str, str]:
         """returns products that is similar to given product"""
         self.eval()
         start = time.time()
         closest = {}
-        corpus_embeddings = self.encode(corpus, to_tensor=True)
-        product_embeddings = self.encode(products, to_tensor=True)
-        emb_time = time.time() - start
+        if isinstance(products, str):
+            products = [products]
+        corpus_embeddings = self.encode(corpus, convert_to_tensor=True)
+        for product in products:
+            product_embeddings = self.encode(product, convert_to_tensor=True)
+            emb_time = time.time() - start
 
-        cos_scores = pytorch_cdist(product_embeddings, corpus_embeddings)[0]
-        cos_scores = cos_scores.to("cpu").numpy()
-        res = np.argpartition(-cos_scores, range(cluster))[0:cluster]
-        for idx in res[0:cluster]:
-            closest[str(cos_scores[idx])] = corpus[idx].strip()
-        if verbose:
-            log.info("embedding took : {:.4f}s".format(emb_time))
-            log.info("Input: {}".format(products))
-            log.info("Clusters of {} similar products:".format(cluster))
-            for k, v in closest.items():
-                log.info("Desc: {} | Scores: {:.4f}".format(v, float(k)))
+            cos_scores = pytorch_cdist(product_embeddings, corpus_embeddings)[0]
+            cos_scores = cos_scores.cpu().numpy()
+            res = np.argpartition(-cos_scores, range(cluster))[0:cluster]
+            if verbose:
+                log.info("embedding took : {:.4f}s".format(emb_time))
+                log.info(f"\n\n{'='*150}\n\n")
+                log.info("Input: {}".format(product))
+                log.info("Clusters of {} similar products:".format(cluster))
+            for idx in res[0:cluster]:
+                closest[cos_scores[idx]] = corpus[idx].strip()
+                if verbose:
+                    log.info(
+                        f"Desc: {corpus[idx].strip()} | Scores: {cos_scores[idx]:.4f}"
+                    )
 
         return closest
 
@@ -98,27 +123,24 @@ class SentenceTransformer(nn.Sequential):
         sentences: Union[str, List[str], List[int]],
         batch_size: int = 32,
         output_value: str = "sentence_embedding",
-        to_numpy: bool = True,
-        to_tensor: bool = False,
-        device: str = None,
+        convert_to_numpy: bool = True,
+        convert_to_tensor: bool = False,
         is_pretokenized: bool = False,
+        device: str = None,
         num_workers: int = 0,
     ) -> Union[List[Tensor], np.ndarray, Tensor]:
         """
-        Computes sentence embedding
-
-        :param sentence: sentences to be embedded, can be str, list(str) or list of tokenized string
-        :param batch_size: batch size used for computing
-        :param output_value: default is `sentence_embedding` to get sentence embedding.
-         Can set to `token_embedding` to get wordpiece token embedding
-        :param to_numpy: convert result to a list of numpy vectors, else PyTorch vectors
-        :param to_tensor: if true, get one large tensor, overwrite `to_numpy`
-        :param device: set which device to use for torch.device
-        :param is_pretokenized: if true, sentences must be a list of int, containing tokenized
-         sentences with each token convert to respective int
-        :param num_workers: background worker to tokenize data
+        Computes sentence embeddings
+        :param sentences: the sentences to embed
+        :param batch_size: the batch size used for the computation
+        :param output_value:  Default sentence_embedding, to get sentence embeddings. Can be set to token_embeddings to get wordpiece token embeddings.
+        :param convert_to_numpy: If true, the output is a list of numpy vectors. Else, it is a list of pytorch tensors.
+        :param convert_to_tensor: If true, you get one large tensor as return. Overwrites any setting from conver_to_numy
+        :param is_pretokenized: If is_pretokenized=True, sentences must be a list of integers, containing the tokenized sentences with each token convert to the respective int.
+        :param device: Which torch.device to use for the computation
+        :param num_workers: Number of background-workers to tokenize data. Set to positive number to increase tokenization speed
         :return:
-            Default will return a list of tensor, if `convert_to_tensor` a list of tensor is returned, else a numpy matrix
+           By default, a list of tensors is returned. If convert_to_tensor, a stacked tensor is returned. If convert_to_numpy, a numpy matrix is returned.
         """
         self.eval()
 
@@ -168,9 +190,9 @@ class SentenceTransformer(nn.Sequential):
 
         all_embeddings = [all_embeddings[idx] for idx in np.argsort(length_sorted_idx)]
 
-        if to_tensor:
+        if convert_to_tensor:
             all_embeddings = torch.stack(all_embeddings)
-        elif to_numpy:
+        elif convert_to_numpy:
             all_embeddings = np.asarray(
                 [emb.cpu().detach().numpy() for emb in all_embeddings]
             )
@@ -179,6 +201,159 @@ class SentenceTransformer(nn.Sequential):
             all_embeddings = all_embeddings[0]
 
         return all_embeddings
+
+    def start_multi_process_pool(
+        self, target_devices: List[str] = None, encode_batch_size: int = 32
+    ):
+        """
+        Starts multi process to process the encode with several, independent  process.
+        This methos is recommend if you want to encode on multiple GPUs. It is advised
+        to start only one process per GPU. This method works together with encode_multi_process
+        :param target_devices: PyTorch target devices, e.g. cuda:0, cuda:1... If None, all available CUDA devices will be used
+        :param encode_batch_size: Batch size for each process when calling encode
+        :return: Returns a dict with the target processes, an input queue and and output queue.
+        """
+        if target_devices is None:
+            if torch.cuda.is_available():
+                target_devices = [
+                    "cuda:{}".format(i) for i in range(torch.cuda.device_count())
+                ]
+            else:
+                logging.info("CUDA is not available. Start 4 CPU worker")
+                target_devices = ["cpu"] * 4
+
+        logging.info(
+            "Start multi-process pool on devices: {}".format(
+                ", ".join(map(str, target_devices))
+            )
+        )
+
+        ctx = mp.get_context("spawn")
+        input_queue = ctx.Queue()
+        output_queue = ctx.Queue()
+        processes = []
+
+        for cuda_id in target_devices:
+            p = ctx.Process(
+                target=SentenceTransformer._encode_multi_process_worker,
+                args=(cuda_id, self, input_queue, output_queue, encode_batch_size),
+                daemon=True,
+            )
+            p.start()
+            processes.append(p)
+
+        return {"input": input_queue, "output": output_queue, "processes": processes}
+
+    @staticmethod
+    def stop_multi_process_pool(pool):
+        """
+        Stops all processes started with start_multi_process_pool
+        """
+        for p in pool["processes"]:
+            p.terminate()
+
+        for p in pool["processes"]:
+            p.join()
+            p.close()
+
+        pool["input"].close()
+        pool["output"].close()
+
+    def encode_multi_process(
+        self,
+        sentences: List[str],
+        pool: Dict[str, object],
+        is_pretokenized: bool = False,
+    ):
+        """
+        This method allows to run encode() on multiple GPUs. The sentences are chunked into smaller packages
+        and sent to individual processes, which encode these on the different GPUs. This method is only suitable
+        for encoding large sets of sentences
+        :param sentences: List of sentences
+        :param pool: A pool of workers started with SentenceTransformer.start_multi_process_pool
+        :param is_pretokenized: If true, no tokenization will be applied. It is expected that the input sentences are list of ints.
+        :return: Numpy matrix with all embeddings
+        """
+
+        chunk_size = min(math.ceil(len(sentences) / len(pool["processes"]) / 10), 5000)
+        logging.info("Chunk data into packages of size {}".format(chunk_size))
+
+        if is_pretokenized:
+            sentences_tokenized = sentences
+        else:
+            sentences_tokenized = map(self.tokenize, sentences)
+
+        input_queue = pool["input"]
+        num_chunks = 0
+        chunk = []
+
+        for sentence in sentences_tokenized:
+            chunk.append(sentence)
+            if len(chunk) >= chunk_size:
+                input_queue.put([num_chunks, chunk])
+                num_chunks += 1
+                chunk = []
+
+        if len(chunk) > 0:
+            input_queue.put([num_chunks, chunk])
+            num_chunks += 1
+
+        output_queue = pool["output"]
+        results_list = sorted(
+            [output_queue.get() for _ in range(num_chunks)], key=lambda x: x[0]
+        )
+        embeddings = np.concatenate([result[1] for result in results_list])
+        return embeddings
+
+    @staticmethod
+    def _encode_multi_process_worker(
+        target_device: str, model, input_queue, results_queue, encode_batch_size
+    ):
+        """
+        Internal working process to encode sentences in multi-process setup
+        """
+        while True:
+            try:
+                id, sentences = input_queue.get()
+                embeddings = model.encode(
+                    sentences,
+                    device=target_device,
+                    is_pretokenized=True,
+                    convert_to_numpy=True,
+                    batch_size=encode_batch_size,
+                )
+                results_queue.put([id, embeddings])
+            except queue.Empty:
+                break
+
+    def get_max_seq_length(self):
+        """
+        Returns the maximal sequence length for input the model accepts. Longer inputs will be truncated
+        """
+        if hasattr(self._first_module(), "max_seq_length"):
+            return self._first_module().max_seq_length
+
+        return None
+
+    def tokenize(self, text: str):
+        """
+        Tokenizes the text
+        """
+        return self._first_module().tokenize(text)
+
+    def get_sentence_features(self, *features):
+        return self._first_module().get_sentence_features(*features)
+
+    def get_sentence_embedding_dimension(self):
+        return self._last_module().get_sentence_embedding_dimension()
+
+    def _first_module(self):
+        """Returns the first module of this sequential embedder"""
+        return self._modules[next(iter(self._modules))]
+
+    def _last_module(self):
+        """Returns the last module of this sequential embedder"""
+        return self._modules[next(reversed(self._modules))]
 
     def smart_batching_collate_text_only(self, batch):
         """
@@ -205,38 +380,21 @@ class SentenceTransformer(nn.Sequential):
 
         return feature_lists
 
-    def save(self, path):
-        if path is None:
-            return
-        log.info("Save model to {}".format(path))
-        contained_modules = []
-        for idx, name in enumerate(self._modules):
-            module = self._modules[name]
-            model_path = os.path.join(path, str(idx) + "_" + type(module).__name__)
-            os.makedirs(model_path, exist_ok=True)
-            module.save(model_path)
-            contained_modules.append(
-                {
-                    "idx": idx,
-                    "name": name,
-                    "path": os.path.basename(model_path),
-                    "type": type(module).__module__,
-                }
-            )
-        with open(os.path.join(path, "modules.json"), "w") as out:
-            json.dump(contained_modules, out, indent=2)
-
     @property
     def device(self) -> torch.device:
-        """return torch.device from module"""
+        """
+        Get torch.device from module, assuming that the whole module has one device.
+        """
         try:
             return next(self.parameters()).device
         except StopIteration:
-            # nn.DataParallel in PyTorch 1.5
+            # For nn.DataParallel compatibility in PyTorch 1.5
+
             def find_tensor_attributes(module: nn.Module) -> List[Tuple[str, Tensor]]:
-                return [
+                tuples = [
                     (k, v) for k, v in module.__dict__.items() if torch.is_tensor(v)
                 ]
+                return tuples
 
             gen = self._named_members(get_members_fn=find_tensor_attributes)
             first_tuple = next(gen)
@@ -244,12 +402,16 @@ class SentenceTransformer(nn.Sequential):
 
     @property
     def tokenizer(self):
-        """property to get tokenized used by this model"""
+        """
+        Property to get the tokenizer that is used by this model
+        """
         return self._first_module().tokenizer
 
     @tokenizer.setter
     def tokenizer(self, value):
-        """property to set the tokenizer that is used by this model"""
+        """
+        Property to set the tokenizer that is should used by this model
+        """
         self._first_module().tokenizer = value
 
     @property
@@ -265,31 +427,6 @@ class SentenceTransformer(nn.Sequential):
         Property to set the maximal input sequence length for the model. Longer inputs will be truncated.
         """
         self._first_module().max_seq_length = value
-
-    def get_max_seq_length(self):
-        """
-        Returns the maximal sequence length for input the model accepts. Longer inputs will be truncated
-        """
-        if hasattr(self._first_module(), "max_seq_length"):
-            return self._first_module().max_seq_length
-
-        return None
-
-    # property function to implements from transformers
-    def tokenize(self, text):
-        return self._first_module().tokenize(text)
-
-    def get_sentence_features(self, *features):
-        return self._first_module().get_sentence_features(*features)
-
-    def get_sentence_embedding_dimension(self):
-        return self._last_module().get_sentence_embedding_dimension()
-
-    def _first_module(self):
-        return self._modules[next(iter(self._modules))]
-
-    def _last_module(self):
-        return self._modules[next(reversed(self._modules))]
 
 
 class EncodeDataset(Dataset):
@@ -316,3 +453,24 @@ class EncodeDataset(Dataset):
 
     def __len__(self):
         return len(self.sentences)
+
+
+if __name__ == "__main__":
+    m = SentenceTransformer(device="cpu", API=False)
+    test_corpus = [
+        "Leanna Ladies (M-L)",
+        "Paige V (S-XL)",
+        "SAM'S (Pant) (S-L)",
+        "Vải chống thấm Tuytsi",
+        "Áo polo Nam (ALL)",
+        "SAM'S (Body) (S-L)",
+        "SAM'S (Polo) (S-L)",
+        "crew neck fitted rib tee (ALL)",
+        "A1 (M-L) Denim Da lộn",
+        "Áo sơ mi Carter (ALL)",
+        "Áo sơ mi Carter (M-L)",
+        "Test (ALL)",
+        "Ao Bell SS 01  (S-M)",
+    ]
+    test_queries = "Leanna Ladies (M-L)"
+    _ = m.infer(corpus=test_corpus, products=test_queries, verbose=True)

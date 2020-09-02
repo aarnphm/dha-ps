@@ -2,7 +2,7 @@
 import json
 import logging
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 from torch import Tensor, nn
@@ -10,12 +10,13 @@ from transformers import DistilBertModel, DistilBertTokenizer
 
 
 class DistilBERT(nn.Module):
-    """DistilBERT to generate token embedding
-    each token is mapped to an output vector from DistilBERT"""
+    """DistilBERT model to generate token embeddings.
+    Each token is mapped to an output vector from DistilBERT.
+    """
 
     def __init__(
         self,
-        model_name: str,
+        model_name_or_path: str,
         max_seq_length: int = 128,
         do_lower_case: Optional[bool] = None,
         model_args: Dict = {},
@@ -27,7 +28,7 @@ class DistilBERT(nn.Module):
 
         if max_seq_length > 510:
             logging.warning(
-                "BERT only allows max_seq_length of 510 (512 with special token). set to 510"
+                "BERT only allows a max_seq_length of 510 (512 with special tokens). Value will be set to 510"
             )
             max_seq_length = 510
         self.max_seq_length = max_seq_length
@@ -35,17 +36,18 @@ class DistilBERT(nn.Module):
         if self.do_lower_case is not None:
             tokenizer_args["do_lower_case"] = do_lower_case
 
-        self.bert = DistilBertModel.from_pretrained(model_name, **model_args)
+        self.bert = DistilBertModel.from_pretrained(model_name_or_path, **model_args)
         self.tokenizer = DistilBertTokenizer.from_pretrained(
-            model_name, **tokenizer_args
+            model_name_or_path, **tokenizer_args
         )
 
     def forward(self, features):
-        """return token_embeddings, cls_token"""
-        # DistiBERT doesn't use token_type_id
+        """Returns token_embeddings, cls_token"""
+        # DistilBERT does not use token_type_ids
         output_states = self.bert(**features)
         output_tokens = output_states[0]
-        cls_tokens = output_tokens[:, 0, :]  # [CLS] is the first token
+
+        cls_tokens = output_tokens[:, 0, :]  # CLS token is first token
         features.update(
             {
                 "token_embeddings": output_tokens,
@@ -60,20 +62,26 @@ class DistilBERT(nn.Module):
         return features
 
     def get_word_embedding_dimension(self) -> int:
-        """return embedding dimension of BERT"""
         return self.bert.config.hidden_size
 
     def tokenize(self, text: str) -> List[int]:
-        """Tokenizes a text and maps tokens to token-ids"""
+        """
+        Tokenizes a text and maps tokens to token-ids
+        """
         return self.tokenizer.convert_tokens_to_ids(self.tokenizer.tokenize(text))
 
     def get_sentence_features(self, tokens: List[int], pad_seq_length: int):
-        """convert tokenized sentenced in its embedding ids, segment ids and mask
-
-        :param tokens: tokenized sentence
-        :param pad_seq_length: maximal length of the sequence. Cannot be greater than self.sentence_transformer_config.max_seq_length
-        :return: embedding ids, segment ids and mask for given sentence"""
-        pad_seq_length = min(pad_seq_length, self.max_seq_length) + 2  # special tokens
+        """
+        Convert tokenized sentence in its embedding ids, segment ids and mask
+        :param tokens:
+            a tokenized sentence
+        :param pad_seq_length:
+            the maximal length of the sequence. Cannot be greater than self.sentence_transformer_config.max_seq_length
+        :return: embedding ids, segment ids and mask for the sentence
+        """
+        pad_seq_length = (
+            min(pad_seq_length, self.max_seq_length) + 2
+        )  # Add space for special tokens
         return self.tokenizer.prepare_for_model(
             tokens,
             max_length=pad_seq_length,
@@ -83,20 +91,19 @@ class DistilBERT(nn.Module):
         )
 
     def get_config_dict(self):
-        """return model config"""
         return {key: self.__dict__[key] for key in self.config_keys}
 
     def save(self, output_path: str):
-        """save model to a sub-folder"""
         self.bert.save_pretrained(output_path)
         self.tokenizer.save_pretrained(output_path)
+
         with open(
             os.path.join(output_path, "sentence_distilbert_config.json"), "w"
-        ) as out:
-            json.dump(self.get_config_dict(), out, indent=2)
+        ) as fOut:
+            json.dump(self.get_config_dict(), fOut, indent=2)
 
     @staticmethod
     def load(input_path: str):
-        with open(os.path.join(input_path, "sentence_distilbert_config.json")) as fin:
-            config = json.load(fin)
-        return DistilBERT(model_name=input_path, **config)
+        with open(os.path.join(input_path, "sentence_distilbert_config.json")) as fIn:
+            config = json.load(fIn)
+        return DistilBERT(model_name_or_path=input_path, **config)

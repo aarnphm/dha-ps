@@ -38,25 +38,25 @@ async def create_corpus(
     corpus_services: CorpusServices = Depends(get_corpus_services),
     order_services: OrderServices = Depends(get_order_services),
 ):
-
+    """generate corpus from database"""
     content = await req.json()
     ord_body = await get_order_idx(db, order_services)
 
     # logic starts here
     res = dataproc.gen_corpus(body=content, ord_body=ord_body, orders_path=None)
     # return {"length": len(res), "corpus": res}
-    await corpus_services.insert_many_descriptions(res)
     return {"generated corpus": True}
 
 
 @products_router.post("/{idx}")
-async def infer(
+async def infer_product(
     req: Request,
     idx: int,
     db: AsyncIOMotorClient = Depends(get_database),
     corpus_services: CorpusServices = Depends(get_corpus_services),
     order_services: OrderServices = Depends(get_order_services),
 ):
+    """infer product given id"""
     content = await req.json()
     ord_body = await get_order_idx(db, order_services)
     model = req.app.state.model
@@ -64,13 +64,13 @@ async def infer(
     try:
         start = time.time()
         res = dataproc.gen_corpus(body=content, ord_body=ord_body, orders_path=None)[0]
-        ops = await corpus_services.insert_one_doc(res)
+        await corpus_services.insert_one_doc(res)
         products_list = await corpus_services.get_all_descriptions()
         log.debug(f"Product info: {res['description']}")
         log.debug(f"Product list: {products_list}")
-        prediction = model.infer(products_list, res["description"])
+        prediction = model.infer(corpus=products_list, products=res["description"])
         log.debug(f"Elapsed time: {(time.time()-start)*1000:.3f}ms")
         return JSONResponse(content=prediction)
-    except Exception as e:
-        log.error(e)
-        return {"internal error": True}
+    except Exception as exception:
+        log.error(exception)
+        raise exception

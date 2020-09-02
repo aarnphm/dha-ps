@@ -6,3 +6,4 @@ dist/
 **/*.cast
 .env
 **/*.csv
+**/*.bak

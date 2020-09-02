@@ -11,10 +11,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// APIURL is downstream proxy to run inference
+// APIURL is downstream proxy to run inference. dev: "http://0.0.0.0:5000"
 const APIURL string = "http://pr-service:30000"
-
-// const APIURL string = "http://0.0.0.0:5000"
 
 // HealthStatus defines connection of inner proxy
 type HealthStatus struct {
