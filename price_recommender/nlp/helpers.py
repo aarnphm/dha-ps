@@ -9,10 +9,13 @@ from loguru import logger as log
 from torch import Tensor
 from tqdm import tqdm
 
+try:
+    from price_recommender.nlp.models import Pooling, Transformer
+except:
+    from models import Pooling, Transformer
+
 MODELS = "distilbert-base-nli-stsb-mean-tokens"
-DOWNLOAD_URL = (
-    "https://public.ukp.informatik.tu-darmstadt.de/reimers/sentence-transformers/v0.2/"
-)
+DOWNLOAD_URL = "https://sbert.net/models/"
 
 
 def get_default_cache_path(model_name_or_path: str = MODELS):
@@ -35,17 +38,27 @@ def get_default_cache_path(model_name_or_path: str = MODELS):
 
         model_path = default_model_path
         os.makedirs(model_path, exist_ok=True)
-        log.info(
-            "Downloading sentence transformer model from {} and saving it at {}".format(
-                model_url, model_path
-            )
-        )
+        log.info(f"Downloading model from {model_url} and saving at {model_path}")
+
         try:
             zip_save_path = os.path.join(model_path, "model.zip")
             http_get(model_url, zip_save_path)
             with ZipFile(zip_save_path, "r") as zipFile:
                 zipFile.extractall(model_path)
                 os.remove(zip_save_path)
+        except requests.exceptions.HTTPError as e:
+            shutil.rmtree(model_path)
+            if e.response.status_code == 404:
+                log.warning(
+                    f"DistilBERT {model_url} not found, creating Transformers instead"
+                )
+                log.warning("Creating Transformers with mean pooling")
+                model_path = None
+                transformer_model = Transformer(model_name_or_path)
+                pooling = Pooling(transformer_model.get_word_embedding_dimension())
+                modules = [transformer_model, pooling]
+            else:
+                raise e
         except Exception as e:
             shutil.rmtree(model_path)
             raise e

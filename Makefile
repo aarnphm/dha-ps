@@ -35,9 +35,9 @@ ingress-dev: ## Run ingress (with reflex to reload when detected changes)
 	reflex --decoration=fancy -s -r '\.go$$' $(INGRESS_RUN)
 
 pr-dev: ## runs python inference server with FastAPI
-	uvicorn price_recommender.main:app --workers 8 --reload --port 5050 --host 0.0.0.0
+	uvicorn price_recommender.main:app --workers 8 --reload --port 5000 --host 0.0.0.0
 
-local: build ## runs dev locally
+local-dev: build ## runs dev locally
 	$(MAKE) -j 2 pr-dev ingress-dev 
 
 dev: push ## local dev with minikube

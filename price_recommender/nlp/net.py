@@ -455,6 +455,7 @@ class EncodeDataset(Dataset):
 
 
 if __name__ == "__main__":
+    # test run on cpu
     m = SentenceTransformer(device="cpu", API=False)
     test_corpus = [
         "Leanna Ladies (M-L)",
