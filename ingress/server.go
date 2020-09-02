@@ -53,8 +53,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	staticServer := http.FileServer(staticFS)
-	r.PathPrefix("/swaggerui/").Handler(http.StripPrefix("/swaggerui/", staticServer))
+	// Allow CORS
+	// w.Header().Set("Access-Control-Allow-Origin", "*")
+	r.PathPrefix("/swaggerui/").Handler(http.StripPrefix("/swaggerui/", http.FileServer(staticFS)))
 
 	// versioning
 	api := r.PathPrefix("/api/v1").Subrouter()

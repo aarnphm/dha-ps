@@ -69,27 +69,34 @@ class SentenceTransformer(nn.Sequential):
         self._target_device = torch.device(device)
 
     def infer(
-        self, corpus: List[str], products: str, cluster: int = 5, verbose=False
+        self,
+        corpus: List[str],
+        products: Union[str, List[str]],
+        cluster: int = 5,
+        verbose=False,
     ) -> Dict[str, str]:
         """returns products that is similar to given product"""
         self.eval()
         start = time.time()
         closest = {}
+        if isinstance(products, str):
+            products = [products]
         corpus_embeddings = self.encode(corpus, to_tensor=True)
-        product_embeddings = self.encode(products, to_tensor=True)
-        emb_time = time.time() - start
+        for product in products:
+            product_embeddings = self.encode(product, to_tensor=True)
+            emb_time = time.time() - start
 
-        cos_scores = pytorch_cdist(product_embeddings, corpus_embeddings)[0]
-        cos_scores = cos_scores.to("cpu").numpy()
-        res = np.argpartition(-cos_scores, range(cluster))[0:cluster]
-        for idx in res[0:cluster]:
-            closest[str(cos_scores[idx])] = corpus[idx].strip()
-        if verbose:
-            log.info("embedding took : {:.4f}s".format(emb_time))
-            log.info("Input: {}".format(products))
-            log.info("Clusters of {} similar products:".format(cluster))
-            for k, v in closest.items():
-                log.info("Desc: {} | Scores: {:.4f}".format(v, float(k)))
+            cos_scores = pytorch_cdist(product_embeddings, corpus_embeddings)[0]
+            cos_scores = cos_scores.cpu()
+            res = np.argpartition(-cos_scores, range(cluster))[0:cluster]
+            for idx in res[0:cluster]:
+                closest[str(cos_scores[idx])] = corpus[idx].strip()
+            if verbose:
+                log.info("embedding took : {:.4f}s".format(emb_time))
+                log.info("Input: {}".format(products))
+                log.info("Clusters of {} similar products:".format(cluster))
+                for k, v in closest.items():
+                    log.info("Desc: {} | Scores: {:.4f}".format(v, float(k)))
 
         return closest
 
@@ -316,3 +323,23 @@ class EncodeDataset(Dataset):
 
     def __len__(self):
         return len(self.sentences)
+
+
+if __name__ == "__main__":
+    m = SentenceTransformer()
+    corpus = [
+        "A man is eating food.",
+        "A man is eating a piece of bread.",
+        "The girl is carrying a baby.",
+        "A man is riding a horse.",
+        "A woman is playing violin.",
+        "Two men pushed carts through the woods.",
+        "A man is riding a white horse on an enclosed ground.",
+        "A monkey is playing drums.",
+        "A cheetah is running behind its prey.",
+    ]
+    queries = [
+        "A man is eating pasta.",
+        "Someone in a gorilla costume is playing a set of drums.",
+        "A cheetah chases prey on across a field.",
+    ]

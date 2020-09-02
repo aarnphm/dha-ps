@@ -63,5 +63,5 @@ todo
 .. |PkgGoDev| image:: https://pkg.go.dev/badge/mod/github.com/aarnphm/dha-ps/ingress
    :target: https://pkg.go.dev/mod/github.com/aarnphm/dha-ps/ingress
    
-.. |Go Report Card| image:: https://goreportcard.com/badge/github.com/aar0npham/dha-ps
-   :target: https://goreportcard.com/report/github.com/aar0npham/dha-ps
+.. |Go Report Card| image:: https://goreportcard.com/badge/github.com/aarnphm/dha-ps
+   :target: https://goreportcard.com/report/github.com/aarnphm/dha-ps

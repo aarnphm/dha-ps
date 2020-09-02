@@ -86,7 +86,7 @@ class Transformer(nn.Module):
         return self.tokenizer.prepare_for_model(
             tokens,
             max_length=pad_seq_length,
-            pad_to_max_length=True,
+            padding=True,
             return_tensors="pt",
             truncation=True,
         )
