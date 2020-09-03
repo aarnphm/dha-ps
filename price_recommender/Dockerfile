@@ -13,15 +13,14 @@ COPY ./requirements.txt /requirements.txt
 RUN apt-get update && \
     apt-get install -y -qq ca-certificates gcc make curl unzip && \
     apt-get clean && \
-    pip install --prefix=/install  \
-        torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html \
-        uvicorn fastapi transformers && \
+    pip install --prefix=/install torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html \
+    uvicorn fastapi sentence_transformers && \
     pip install --prefix=/install -r /requirements.txt && \
     rm -rf /var/lib/apt/lists/* && \
     if [ "$use_pre_train_model" = "true" ]; then \
     # download model from server
     curl https://sbert.net/models/distilbert-base-nli-stsb-mean-tokens.zip --output model.zip && \
-    unzip -j model.zip 0_Transformer/pytorch_model.bin -d /model && \
+    unzip model.zip -d /model && \
     rm model.zip; \
     fi
 
@@ -29,13 +28,12 @@ FROM base
 
 ENV PATH $HOME/install/bin:$PATH
 
-ARG model_dir=/price_recommender/nlp/distilbert-base-nli-stsb-mean-tokens/0_Transformer
+ARG model_dir=/price_recommender/nlp/distilbert-base-nli-stsb-mean-tokens/
 
 COPY --from=builder /install /usr/local/
 
 COPY ./api /app/price_recommender/api
-COPY ./nlp /app/price_recommender/nlp
-COPY --from=builder /model/pytorch_model.bin /app/${model_dir}
+COPY --from=builder /model /app/${model_dir}
 COPY ./core /app/price_recommender/core
 COPY ./internal /app/price_recommender/internal
 COPY ./main.py /app/
