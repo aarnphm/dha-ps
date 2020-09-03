@@ -51,6 +51,16 @@ delete: ## remove current deployment
 	kubectl delete -n default deployment/ingress
 	kubectl delete -n default deployment/pr
 
+local: build ## runs dev locally
+	$(MAKE) -j 2 pr-dev ingress-dev 
+
+dev: push ## local dev with minikube
+	## https://unix.stackexchange.com/a/393949/430604
+ifeq ($(shell minikube status | sed -n "s/.*host: //p"), "Running")
+	minikube start
+endif
+	kubectl apply -f deploy/minikube.yml
+
 docker-%: ## build, run, push with configuration
 	docker-compose -f deploy/docker-compose.yml $*
 
