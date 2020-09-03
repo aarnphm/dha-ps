@@ -23,11 +23,11 @@ jobs:
       - run:
           name: Building Ingress Docker Images
           command: |
-            docker build -t gcr.io/${GOOGLE_PROJECT_ID}/ingress:${CIRCLE_SHA1} ingress
+            docker build -t gcr.io/${GOOGLE_PROJECT_ID}/ingress:${CIRCLE_SHA1} -f ingress/build/ingress.dockerfile ingress
       - run:
           name: Building Price Recommender Docker Images
           command: |
-            docker build -t gcr.io/${GOOGLE_PROJECT_ID}/pr:${CIRCLE_SHA1} price_recommender
+            docker build -t gcr.io/${GOOGLE_PROJECT_ID}/pr:${CIRCLE_SHA1} -f price_recommender/build/with-nocuda.dockerfile price_recommender
       - run:
           name: Push Both Images to Container Registry
           command: |
