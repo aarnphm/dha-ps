@@ -28,7 +28,7 @@ FROM base
 
 ENV PATH $HOME/install/bin:$PATH
 
-ARG model_dir=/price_recommender/nlp/distilbert-base-nli-stsb-mean-tokens/
+ARG model_dir=price_recommender/distilbert-base-nli-stsb-mean-tokens/
 
 COPY --from=builder /install /usr/local/
 
