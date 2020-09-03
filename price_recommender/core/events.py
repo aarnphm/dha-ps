@@ -13,7 +13,7 @@ from price_recommender.internal.repository.utils import connect, disconnect
 class Model:
     def __init__(
         self,
-        model: str = "/app/price_recommender/nlp/distilbert-base-nli-stsb-mean-tokens/",
+        model: str = "/app/price_recommender/distilbert-base-nli-stsb-mean-tokens",
     ):
         if not os.path.exists(model):
             model = "distilbert-base-nli-stsb-mean-tokens"
