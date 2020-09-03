@@ -1,0 +1,252 @@
+basePath: /
+consumes:
+- application/json
+- application/xml
+definitions:
+  Attributes:
+    properties:
+      id:
+        format: int64
+        type: integer
+        x-go-name: ID
+      ismaterial:
+        $ref: '#/definitions/NullBool'
+      ispackingtrims:
+        $ref: '#/definitions/NullBool'
+      isproduct:
+        $ref: '#/definitions/NullBool'
+      issewingtrims:
+        $ref: '#/definitions/NullBool'
+      name:
+        type: string
+        x-go-name: Name
+    title: Attributes ...
+    type: object
+    x-go-package: github.com/aarnphm/dha-ps/ingress/internal/models
+  AttributesResponse:
+    description: AttributesResponse model
+    properties:
+      attributes:
+        items:
+          $ref: '#/definitions/Attributes'
+        type: array
+        x-go-name: Payload
+      code:
+        format: int64
+        type: integer
+        x-go-name: Code
+      message:
+        type: string
+        x-go-name: Message
+    type: object
+    x-go-package: github.com/aarnphm/dha-ps/ingress/api/handlers
+  NullBool:
+    description: |-
+      NullBool implements the Scanner interface so
+      it can be used as a scan destination, similar to NullString.
+    properties:
+      Bool:
+        type: boolean
+      Valid:
+        type: boolean
+    title: NullBool represents a bool that may be null.
+    type: object
+    x-go-package: database/sql
+  NullString:
+    description: |-
+      var s NullString
+      err := db.QueryRow("SELECT name FROM foo WHERE id=?", id).Scan(&s)
+      ...
+      if s.Valid {
+      use s.String
+      } else {
+      NULL value
+      }
+    properties:
+      String:
+        type: string
+      Valid:
+        type: boolean
+    title: |-
+      NullString represents a string that may be null.
+      NullString implements the Scanner interface so
+      it can be used as a scan destination:
+    type: object
+    x-go-package: database/sql
+  ProductResponse:
+    description: ProductResponse model
+    properties:
+      product:
+        $ref: '#/definitions/Products'
+    type: object
+    x-go-package: github.com/aarnphm/dha-ps/ingress/api/handlers
+  Products:
+    properties:
+      attribute_id:
+        format: int64
+        type: integer
+        x-go-name: AttributeID
+      attribute_name:
+        type: string
+        x-go-name: AttributeName
+      attribute_value_id:
+        format: int64
+        type: integer
+        x-go-name: AttributeValueID
+      attribute_value_name:
+        $ref: '#/definitions/NullString'
+      product_id:
+        format: int64
+        type: integer
+        x-go-name: ID
+      product_name:
+        type: string
+        x-go-name: ProductName
+    title: Products ...
+    type: object
+    x-go-package: github.com/aarnphm/dha-ps/ingress/internal/models
+  ProductsResponse:
+    description: ProductsResponse model
+    properties:
+      code:
+        format: int64
+        type: integer
+        x-go-name: Code
+      message:
+        type: string
+        x-go-name: Message
+      products:
+        items:
+          $ref: '#/definitions/Products'
+        type: array
+        x-go-name: Payload
+    type: object
+    x-go-package: github.com/aarnphm/dha-ps/ingress/api/handlers
+host: localhost:8080
+info:
+  contact:
+    email: aaronpham0103@gmail.com
+    name: Aaron Pham
+  description: establishes comms with database to pass data to a downstream server for inference
+  license:
+    name: Apache 2.0
+    url: https://github.com/aarnphm/dha-ps/blob/master/LICENSE
+  title: Ingress Server
+  version: 0.0.1-dev
+paths:
+  /api/v1/attributes/:
+    post:
+      consumes:
+      - application/json
+      - 'Scheme:'
+      - http
+      description: Will updates all obsolete values existed on Mongo
+      operationId: attrsList
+      responses:
+        "200":
+          $ref: '#/responses/attributesResponse'
+        default:
+          $ref: '#/responses/genericError'
+      summary: List all attributes from table and sends downstream to filter order of importance
+      tags:
+      - attributes
+  /api/v1/products/:
+    post:
+      consumes:
+      - application/json
+      description: Null SQL Values will be handle downstream via processing.null_handler
+      operationId: productsList
+      produces:
+      - application/json
+      - 'Scheme:'
+      - http
+      responses:
+        "200":
+          $ref: '#/responses/productsResponse'
+        default:
+          $ref: '#/responses/genericError'
+      summary: List all products info from table and sends downstream to generate corpus
+      tags:
+      - products
+  /api/v1/products/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Null SQL Values will be handle downstream via processing.null_handler. If not found in existing corpus process and then added
+      operationId: productList
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        type: int
+      produces:
+      - application/json
+      - 'Scheme:'
+      - http
+      responses:
+        "200":
+          $ref: '#/responses/productsResponse'
+        default:
+          $ref: '#/responses/genericError'
+      summary: Find a products in a database, send it downstream for inference, then save newly/updated for corpus via MongoDB
+      tags:
+      - products
+  /api/v1/products/exported:
+    get:
+      consumes:
+      - application/json
+      description: If errors occur likely there is postgres problem
+      operationId: productExported
+      produces:
+      - text/csv
+      - 'Scheme:'
+      - http
+      responses:
+        "200":
+          $ref: '#/responses/productsResponse'
+        default:
+          $ref: '#/responses/genericError'
+      summary: List all products info and export to csv file
+      tags:
+      - products
+produces:
+- application/json
+- application/xml
+responses:
+  attributesResponse:
+    description: This will be the description of response body
+    schema:
+      $ref: '#/definitions/AttributesResponse'
+  genericError:
+    description: GenericError is the default error message that is generated
+    schema:
+      properties:
+        code:
+          format: int32
+          type: integer
+          x-go-name: Code
+        message:
+          type: string
+          x-go-name: Message
+      type: object
+  productResponse:
+    description: This will wrap ProductResponse
+    schema:
+      $ref: '#/definitions/ProductResponse'
+  productsResponse:
+    description: This will wrap ProductsResponse
+    schema:
+      $ref: '#/definitions/ProductsResponse'
+  tooManyRequestError:
+    description: TooManyRequestError handles HTTP 429
+schemes:
+- http
+- https
+security:
+- api_key: []
+securityDefinitions:
+  api_key:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

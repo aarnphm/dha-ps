@@ -13,13 +13,13 @@ import (
 
 const (
 	// ExpiryTime defines how long before the user got deleted
-	ExpiryTime time.Duration = 1 * time.Minute
+	ExpiryTime time.Duration = 3 * time.Minute
 	// RefreshRate deinfes how often we check the map for expired user
 	RefreshRate time.Duration = 1 * time.Minute
-	// AvgRate defines the limit of average token comsumption
+	// AvgRate defines the average of r tokens (one) per seconds
 	AvgRate rate.Limit = 1
-	// MaxRate defines the limit of spike token consumption
-	MaxRate int = 5
+	// MaxRate defines the maximum of b tokens (five) in single `burst`
+	MaxRate int = 3
 )
 
 var (
@@ -33,17 +33,11 @@ type Visitor struct {
 	lastSeen time.Time
 }
 
-// LogRoute prettyprints requested routes
-func LogRoute(req http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("[URI]: %s", r.URL.String())
-		req.ServeHTTP(w, r)
-	})
-}
-
 // CORS handles cors request
 func CORS(req http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Combine log routes with CORS
+		log.Printf("[URI]: %s", r.URL.String())
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type")
@@ -59,7 +53,7 @@ func RateLimiter(req http.Handler) http.Handler {
 		limiter := getLimiter(ip)
 
 		if !limiter.Allow() {
-			http.Error(w, http.StatusText(429), http.StatusTooManyRequests)
+			http.Error(w, http.StatusText(http.StatusTooManyRequests), http.StatusTooManyRequests)
 			return
 		}
 		req.ServeHTTP(w, r)
@@ -78,7 +72,7 @@ func getIP(r *http.Request) string {
 func getLimiter(ip string) *rate.Limiter {
 	user, exists := getVisitor(ip)
 	if !exists {
-		return createNewLimiterForVisitor(ip)
+		return createNewLimiter(ip)
 	}
 	updateLastSeen(user)
 	return user.limiter
@@ -94,7 +88,7 @@ func getVisitor(ip string) (*Visitor, bool) {
 
 }
 
-func createNewLimiterForVisitor(ip string) *rate.Limiter {
+func createNewLimiter(ip string) *rate.Limiter {
 	mu.Lock()
 	defer mu.Unlock()
 

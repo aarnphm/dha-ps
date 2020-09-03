@@ -1,6 +1,0 @@
-notebooks/
-**/*.lock
-**/*.toml
-**/*.rst
-**/*.bin
-.env

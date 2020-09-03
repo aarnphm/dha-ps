@@ -13,13 +13,11 @@ import (
 	"github.com/aarnphm/dha-ps/ingress/api/handlers"
 	"github.com/aarnphm/dha-ps/ingress/api/middleware"
 	_ "github.com/aarnphm/dha-ps/ingress/docs"
-	_ "github.com/aarnphm/dha-ps/ingress/docs/ui"
 	pgd "github.com/aarnphm/dha-ps/ingress/internal/repository/postgres"
 	"github.com/aarnphm/dha-ps/ingress/internal/services"
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"github.com/rakyll/statik/fs"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -45,17 +43,10 @@ func main() {
 	// Create new mux router and api subrouter
 	r := mux.NewRouter().StrictSlash(true)
 	// products API starts here
-	r.Use(middleware.LogRoute)
+	r.Use(middleware.CORS)
+	r.Use(middleware.RateLimiter)
 	r.HandleFunc("/", handlers.Health)
 
-	// serve docs here
-	staticFS, err := fs.New()
-	if err != nil {
-		panic(err)
-	}
-	// Allow CORS
-	// w.Header().Set("Access-Control-Allow-Origin", "*")
-	r.PathPrefix("/swaggerui/").Handler(http.StripPrefix("/swaggerui/", middleware.CORS(http.FileServer(staticFS))))
 	// versioning
 	api := r.PathPrefix("/api/v1").Subrouter()
 	// define repo layer

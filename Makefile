@@ -1,5 +1,7 @@
 #!make
-.PHONY := help push lint build dev
+.PHONY := all
+
+all: help dev lint build
 
 .DEFAULT_GOAL := dev
 
@@ -11,23 +13,16 @@ LOCAL ?= true
 
 INGRESS_RUN = $(shell cd 'ingress' && go run .)
 
-ifeq ($(LOCAL), true)
-	DOC_DIR = docs/ui/dist/swagger.json
-else
-	DOC_DIR = docs/swagger.json
-endif
 
 help: ## List of defined target
 	@grep -E '^[a-zA-Z_-]+:.*?##.*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'	
 
 build: ## Go build ingress
-	cd $(GO_DIR) && swagger generate spec -o $(DOC_DIR)
-ifeq ($(LOCAL), true)
-	cd $(GO_DIR)/docs && statik -src ui/dist -p ui -f
-endif
+	cd $(GO_DIR) && swagger generate spec -o docs/swagger.json -o docs/swagger.yml
 	cd $(GO_DIR) && go build -o bin/$(BIN) .
 
 lint: ## Go lint
+	cd $(GO_DIR) && go test ./...
 	cd $(GO_DIR) && golangci-lint run
 
 ingress-dev: ## Run ingress (with reflex to reload when detected changes)
@@ -41,15 +36,11 @@ local-dev: build ## runs dev locally
 	$(MAKE) -j 2 pr-dev ingress-dev 
 
 dev: push ## local dev with minikube
-## https://unix.stackexchange.com/a/393949/430604
-ifeq ($(shell minikube status | sed -n "s/.*host: //p"), "Running")
-	minikube start
-endif
+	$(MAKE) delete
 	kubectl apply -f deploy/minikube.yml
 
 delete: ## remove current deployment
-	kubectl delete -n default deployment/ingress
-	kubectl delete -n default deployment/pr
+	kubectl delete -n default deployment --all
 
 docker-%: ## build, run, push with configuration
 	docker-compose -f deploy/docker-compose.yml $*
