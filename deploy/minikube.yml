@@ -121,31 +121,11 @@ spec:
         imagePullPolicy: Always
         name: pr
         env:
-          - name: ALLOWED_HOST
-            valueFrom:
-              secretKeyRef:
-                name: pr
-                key: ALLOWED_HOST
-          - name: DEBUG
-            valueFrom:
-              secretKeyRef:
-                name: pr
-                key: DEBUG
           - name: MONGO_URI
             valueFrom:
               secretKeyRef:
                 name: pr
                 key: MONGO_URI
-          - name: PROJECT_NAME
-            valueFrom:
-              secretKeyRef:
-                name: pr
-                key: PROJECT_NAME
-          - name: SECRET_KEY
-            valueFrom:
-              secretKeyRef:
-                name: pr
-                key: SECRET_KEY
         resources:
           requests:
             cpu: "250m"

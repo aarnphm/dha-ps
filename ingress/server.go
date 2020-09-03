@@ -55,8 +55,7 @@ func main() {
 	}
 	// Allow CORS
 	// w.Header().Set("Access-Control-Allow-Origin", "*")
-	r.PathPrefix("/swaggerui/").Handler(http.StripPrefix("/swaggerui/", http.FileServer(staticFS)))
-
+	r.PathPrefix("/swaggerui/").Handler(http.StripPrefix("/swaggerui/", middleware.CORS(http.FileServer(staticFS))))
 	// versioning
 	api := r.PathPrefix("/api/v1").Subrouter()
 	// define repo layer
