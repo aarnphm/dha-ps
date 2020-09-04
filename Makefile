@@ -23,7 +23,7 @@ build: ## Go build ingress
 	cd $(GO_DIR) && go build -o bin/$(BIN) .
 
 lint: ## Go lint
-	cd $(GO_DIR) && go test ./...
+	cd $(GO_DIR) && go test `go list ./... | grep -Ev 'bin|docs|models|httputil'`
 	cd $(GO_DIR) && golangci-lint run
 
 ingress-dev: ## Run ingress (with reflex to reload when detected changes)
