@@ -18,7 +18,8 @@ help: ## List of defined target
 	@grep -E '^[a-zA-Z_-]+:.*?##.*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'	
 
 build: ## Go build ingress
-	cd $(GO_DIR) && swagger generate spec -o docs/swagger.json -o docs/swagger.yml
+	cd $(GO_DIR) && swagger generate spec -o docs/swagger.yml
+	cd $(GO_DIR) && statik -src=docs -f -p docs 
 	cd $(GO_DIR) && go build -o bin/$(BIN) .
 
 lint: ## Go lint

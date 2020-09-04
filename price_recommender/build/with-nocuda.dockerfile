@@ -19,7 +19,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     if [ "$use_pre_train_model" = "true" ]; then \
     # download model from server
-    curl https://sbert.net/models/distilbert-base-nli-stsb-mean-tokens.zip --output model.zip && \
+    curl -Lo model.zip https://sbert.net/models/distilbert-base-nli-stsb-mean-tokens.zip && \
     unzip model.zip -d /model && \
     rm model.zip; \
     fi

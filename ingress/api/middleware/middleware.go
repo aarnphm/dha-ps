@@ -33,16 +33,23 @@ type Visitor struct {
 	lastSeen time.Time
 }
 
-// CORS handles cors request
-func CORS(req http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Combine log routes with CORS
-		log.Printf("[URI]: %s", r.URL.String())
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type")
-		req.ServeHTTP(w, r)
-	})
+func init() {
+	log.Info("Started background rate-limiter goroutine...")
+	go cleanupVisitors()
+}
+
+// cleanupVisitors check for the map of visitors that haven't been seen for 3 minutes and delete from it
+func cleanupVisitors() {
+	for {
+		time.Sleep(RefreshRate)
+		mu.Lock()
+		for ip, v := range visitors {
+			if time.Since(v.lastSeen) > ExpiryTime {
+				delete(visitors, ip)
+			}
+		}
+		mu.Unlock()
+	}
 }
 
 // RateLimiter is the middleware to prevent a single IP to overload the server by performing too many req
@@ -102,23 +109,4 @@ func updateLastSeen(v *Visitor) {
 	mu.Lock()
 	defer mu.Unlock()
 	v.lastSeen = time.Now()
-}
-
-func init() {
-	log.Info("Started background rate-limiter goroutine...")
-	go cleanupVisitors()
-}
-
-// cleanupVisitors check for the map of visitors that haven't been seen for 3 minutes and delete from it
-func cleanupVisitors() {
-	for {
-		time.Sleep(RefreshRate)
-		mu.Lock()
-		for ip, v := range visitors {
-			if time.Since(v.lastSeen) > ExpiryTime {
-				delete(visitors, ip)
-			}
-		}
-		mu.Unlock()
-	}
 }

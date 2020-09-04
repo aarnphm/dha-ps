@@ -18,6 +18,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/rakyll/statik/fs"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -46,7 +47,13 @@ func main() {
 	r.Use(middleware.CORS)
 	r.Use(middleware.RateLimiter)
 	r.HandleFunc("/", handlers.Health)
-
+	// serve docs here
+	staticFS, err := fs.New()
+	if err != nil {
+		panic(err)
+	}
+	// Allow CORS
+	r.PathPrefix("/swaggerui/").Handler(http.StripPrefix("/swaggerui/", http.FileServer(staticFS)))
 	// versioning
 	api := r.PathPrefix("/api/v1").Subrouter()
 	// define repo layer

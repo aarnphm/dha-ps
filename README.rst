@@ -11,13 +11,13 @@ related tasks are under ``pr`` otherwise
 Instruction for local development
 ---------------------------------
 
-- Remember to install:
+- Requirements:
     * Go
-    * docker/docker-compose
+    * docker - docker-compose (Optional)
     * `poetry <https://python-poetry.org/docs/>`_ (Optional)
-    * minikube and kubectl, then ``minikube addons add metrics-server``
+    * minikube and kubectl, then enable ``metrics-server`` with ``minikube addons add metrics-server``
 
--  Run ``make docker-build`` to generate docker images, then to deploy k8s locally do ``kubectl apply -f deploy/minikube.yml``.
+-  Run ``make build`` to generate docker images, then to deploy k8s locally do ``kubectl apply -f deploy/minikube.yml``.
 -  Check ``kubectl get svc`` and you will get something like shown:
 
 .. code-block:: sh
@@ -27,7 +27,7 @@ Instruction for local development
     kubernetes           ClusterIP      10.0.0.1     <none>            443/TCP           38h
     recommender-service  NodePort       10.0.3.13    <none>            30000:32610/TCP   71s
 
--  One note that ``EXTERNAL-IP`` will be configured depends on each cloud provider. If using minikube just run ``minikube service ingress-service``, then you should receive
+-  Note that ``EXTERNAL-IP`` will be configured depends on each cloud provider. If using minikube just run ``minikube service ingress-service`` to get the IP addr, then you should receive
 
 
 .. code-block:: json
@@ -35,7 +35,7 @@ Instruction for local development
     "ProxyAlive":true,
     "StreamAlive":true
 
--  You can access ``/swaggerui/`` for API endpoints docs
+-  You can access ``/swaggerui/`` for API docs
 -  Included a cuda-enabled images ``for price_recommender``.  Make sure you have nvidia-docker_ install. After do so run:
 
 .. code-block:: sh
@@ -70,9 +70,15 @@ price_recommender
 Todo
 ----
 
--  ☐ k8s deployment
 -  ☐ running model in browser?
 -  ☐ makes swagger functionable with k8s
+    
+.. code-block:: sh
+
+    cd ingress && docker build -t aar0npham/dha-pr-swagger:latest -f build/swagger.dockerfile .
+    docker run -p 8081:8080 -e URLS="[{url:'/swagger.yml', name: 'Ingress Server'}]" aar0npham/dha-pr-swagger:latest
+
+-  ☒ k8s deployment
 -  ☒ generate godoc
 -  ☒ prepare info from db for inference
 -  ☒ streamline ``product_info`` into python server

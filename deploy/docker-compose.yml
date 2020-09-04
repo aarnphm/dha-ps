@@ -6,11 +6,6 @@ services:
       dockerfile: build/ingress.dockerfile
     image: aar0npham/dha-pr-ingress:latest
     restart: always
-  swaggerui:
-    build:
-      context: ../ingress
-      dockerfile: build/swagger.dockerfile
-    image: aar0npham/dha-pr-swagger:latest
   pr-nocuda:
     build:
       context: ../price_recommender

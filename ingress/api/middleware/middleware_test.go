@@ -28,8 +28,8 @@ func TestRateLimiter(t *testing.T) {
 	mddlw := middleware.RateLimiter(handler)
 	is.NotZero(mddlw)
 
-	success := int64(3)
-	clients := int64(30)
+	success := int64(1)
+	clients := int64(20)
 
 	// sequential
 	for i := int64(1); i <= clients; i++ {

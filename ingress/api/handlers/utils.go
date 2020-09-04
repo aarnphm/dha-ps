@@ -39,6 +39,16 @@ func checkDownstreamHealth() bool {
 	return true
 }
 
+// DocHandler handles swagger json file
+func DocHandler(w http.ResponseWriter, r *http.Request) {
+	r.Header.Add("Content-Type", "application/json")
+	data, err := ioutil.ReadFile("../../docs/swagger.json")
+	if err != nil {
+		log.Errorf("Error: [%s]", err.Error())
+	}
+	w.Write(data)
+}
+
 // Health returns status of proxy and model health
 func Health(w http.ResponseWriter, r *http.Request) {
 	online := HealthStatus{ProxyAlive: true, StreamAlive: checkDownstreamHealth()}
