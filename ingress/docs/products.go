@@ -17,6 +17,9 @@ import "github.com/aarnphm/dha-ps/ingress/api/handlers"
 //     Scheme:
 //     - http
 //
+//     Security:
+//       api_key:
+//
 //     Responses:
 //       default: genericError
 //       200: productsResponse
@@ -40,7 +43,7 @@ import "github.com/aarnphm/dha-ps/ingress/api/handlers"
 // Find a products in a database, send it downstream for inference, then save newly/updated for corpus via MongoDB
 //
 // Null SQL Values will be handle downstream via processing.null_handler. If not found in existing corpus process and then added
-//
+///
 //     Consumes:
 //     - application/json
 //
@@ -49,6 +52,9 @@ import "github.com/aarnphm/dha-ps/ingress/api/handlers"
 //
 //     Scheme:
 //     - http
+//
+//     Security:
+//       api_key:
 //
 //     Responses:
 //       default: genericError
@@ -68,6 +74,9 @@ import "github.com/aarnphm/dha-ps/ingress/api/handlers"
 //
 //     Scheme:
 //     - http
+//
+//     Security:
+//       api_key:
 //
 //     Responses:
 //       default: genericError

@@ -5,7 +5,7 @@
 //     Schemes: http, https
 //     Host: localhost:8080
 //     BasePath: /
-//     Version: 0.0.1-dev
+//     Version: 0.0.2-stable
 //     License: Apache 2.0 https://github.com/aarnphm/dha-ps/blob/master/LICENSE
 //     Contact: Aaron Pham<aaronpham0103@gmail.com>
 //

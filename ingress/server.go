@@ -12,6 +12,7 @@ import (
 
 	"github.com/aarnphm/dha-ps/ingress/api/handlers"
 	"github.com/aarnphm/dha-ps/ingress/api/middleware"
+	_ "github.com/aarnphm/dha-ps/ingress/bin"
 	_ "github.com/aarnphm/dha-ps/ingress/docs"
 	pgd "github.com/aarnphm/dha-ps/ingress/internal/repository/postgres"
 	"github.com/aarnphm/dha-ps/ingress/internal/services"

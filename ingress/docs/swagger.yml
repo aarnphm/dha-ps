@@ -122,7 +122,7 @@ definitions:
         x-go-name: Payload
     type: object
     x-go-package: github.com/aarnphm/dha-ps/ingress/api/handlers
-host: localhost:8080
+host: 172.17.0.2:31607
 info:
   contact:
     email: aaronpham0103@gmail.com
@@ -147,6 +147,8 @@ paths:
           $ref: '#/responses/attributesResponse'
         default:
           $ref: '#/responses/genericError'
+      security:
+      - api_key: []
       summary: List all attributes from table and sends downstream to filter order of importance
       tags:
       - attributes
@@ -165,6 +167,8 @@ paths:
           $ref: '#/responses/productsResponse'
         default:
           $ref: '#/responses/genericError'
+      security:
+      - api_key: []
       summary: List all products info from table and sends downstream to generate corpus
       tags:
       - products
@@ -188,6 +192,8 @@ paths:
           $ref: '#/responses/productsResponse'
         default:
           $ref: '#/responses/genericError'
+      security:
+      - api_key: []
       summary: Find a products in a database, send it downstream for inference, then save newly/updated for corpus via MongoDB
       tags:
       - products
@@ -206,6 +212,8 @@ paths:
           $ref: '#/responses/productsResponse'
         default:
           $ref: '#/responses/genericError'
+      security:
+      - api_key: []
       summary: List all products info and export to csv file
       tags:
       - products

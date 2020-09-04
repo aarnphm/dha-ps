@@ -19,7 +19,7 @@ help: ## List of defined target
 
 build: ## Go build ingress
 	cd $(GO_DIR) && swagger generate spec -o docs/swagger.yml
-	cd $(GO_DIR) && statik -src=docs -f -p docs 
+	cd $(GO_DIR) && statik -src=docs -p bin -f
 	cd $(GO_DIR) && go build -o bin/$(BIN) .
 
 lint: ## Go lint

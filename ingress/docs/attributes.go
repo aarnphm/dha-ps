@@ -15,6 +15,9 @@ import "github.com/aarnphm/dha-ps/ingress/api/handlers"
 //     Scheme:
 //     - http
 //
+//     Security:
+//       api_key:
+//
 //     Responses:
 //       default: genericError
 //       200: attributesResponse
