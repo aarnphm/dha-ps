@@ -27,8 +27,22 @@ Instruction for local development
     kubernetes           ClusterIP      10.0.0.1     <none>            443/TCP           38h
     recommender-service  NodePort       10.0.3.13    <none>            30000:32610/TCP   71s
 
--  Note that ``EXTERNAL-IP`` will be configured depends on each cloud provider. If using minikube just run ``minikube service ingress-service`` to get the IP addr, then you should receive
+-  create your own secrets in ``.env`` with following format below, then apply with ``kubectl create secrets generic <pr/ingress> --from-env-file <dir/to/env file>``. You can read more about `secrets`_ on kubernetes documentation.
 
+.. code-block:: sh
+    
+    # for ingress services
+    PG_HOST=...
+    PG_PORT=...
+    PG_USER=...
+    PG_PASSWORD=...
+    PG_DATABASE=...
+    PG_SEARCHPATH=...
+    APIKEY=...
+    # for price_recommender services
+    MONGO_URI=...
+
+-  Note that ``EXTERNAL-IP`` will be configured depends on each cloud provider. If using minikube just run ``minikube service ingress-service`` to get the IP addr, then you should receive
 
 .. code-block:: json
 
@@ -85,6 +99,8 @@ Todo
 -  ☒ added rate limiter for middleware
 -  ☒ Find a model that fits with the requirement
 -  ☒ Train on another dataset
+
+.. _secrets: https://kubernetes.io/docs/concepts/configuration/secret/
 
 .. _minikube: image:: https://asciinema.org/a/8rztottpt8A58y2NtGUIhRERs.svg
    :target: https://asciinema.org/a/8rztottpt8A58y2NtGUIhRERs
