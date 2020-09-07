@@ -1,7 +1,8 @@
+from loguru import logger as log
+import time
 import typing as t
 from abc import ABC, abstractmethod
 
-from loguru import logger as log
 from pydantic import BaseModel
 
 from price_recommender.internal.repository.drivers import AsyncIOMotorClient
@@ -69,17 +70,18 @@ class MongoCRUD(Base):
         obj = await self.get_one_doc_by(idx_val)
         if obj is not None:
             targ = self.__uv__(obj, new_val)
-            log.info(targ)
             await self.trx.update_one({self.idx_params: idx_val}, {"$set": targ.dict()})
             return {"updated": True}
         return {"updated": False}
 
     async def update_many_docs(self, list_docs: t.List[t.Dict]) -> t.Dict:
+        start = time.time()
         for it in list_docs:
             ops = await self.update_one_doc(it[self.idx_params], it[self.change_params])
             if not ops["updated"]:
-                log.info(f"{it[self.idx_params]} doesn't exists in DB, skipping...")
+                # log.info(f"{it[self.idx_params]} doesn't exists in DB, skipping...")
                 continue
+        log.debug(f"Elapsed time: {(time.time()-start)*1000:.3f}ms")
         return {"updated many": True}
 
     async def get_one_doc_by(self, idx_val: str):

@@ -9,7 +9,8 @@ class ProductsRepository(Repository):
     attribute_value_id: int = None
     attribute_value_name: str = None
     attribute_id: int = None
-    atribute_name: str = None
+    attribute_name: str = None
+    product_type_id: int = None
 
 
 class ProductsCorpus(Repository):

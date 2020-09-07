@@ -3,7 +3,7 @@
 // establishes comms with database to pass data to a downstream server for inference
 //
 //     Schemes: http, https
-//     Host: localhost:8080
+//     Host: 172.17.0.2:31607
 //     BasePath: /
 //     Version: 0.0.2-stable
 //     License: Apache 2.0 https://github.com/aarnphm/dha-ps/blob/master/LICENSE

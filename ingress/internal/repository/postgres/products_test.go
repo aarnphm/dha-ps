@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/DATA-DOG/go-sqlmock"
+	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/aarnphm/dha-ps/ingress/internal/models"
 	"github.com/jmoiron/sqlx"
 
@@ -18,11 +18,11 @@ var (
 	mockProducts = []models.Products{
 		models.Products{
 			ID: 1, ProductName: "test", AttributeValueID: 12, AttributeValueName: sql.NullString{String: "Order", Valid: true},
-			AttributeID: 123, AttributeName: "Neck", CreatedAt: time.Now(), UpdatedAt: time.Now(),
+			AttributeID: 123, AttributeName: "Neck", ProductTypeID: 12, CreatedAt: time.Now(), UpdatedAt: time.Now(),
 		},
 	}
 	columns = []string{"product_id", "product_name", "attribute_value_id", "attribute_value_name", "attribute_id",
-		"attribute_name", "created_at", "updated_at"}
+		"attribute_name", "product_type_id", "created_at", "updated_at"}
 )
 
 func getMockDB(m []models.Products, t *testing.T) (db *sqlx.DB, mock sqlmock.Sqlmock, rs *sqlmock.Rows) {
@@ -35,7 +35,7 @@ func getMockDB(m []models.Products, t *testing.T) (db *sqlx.DB, mock sqlmock.Sql
 	rows := sqlmock.NewRows(columns)
 	for _, p := range m {
 		rows.AddRow(p.ID, p.ProductName, p.AttributeValueID, p.AttributeValueName,
-			p.AttributeID, p.AttributeName, p.CreatedAt, p.UpdatedAt)
+			p.AttributeID, p.AttributeName, p.ProductTypeID, p.CreatedAt, p.UpdatedAt)
 	}
 	return db, mock, rows
 }

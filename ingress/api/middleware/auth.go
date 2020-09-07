@@ -3,10 +3,10 @@ package middleware
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/aarnphm/dha-ps/ingress/api/httputil"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 // Auth ensures endpoints cannot be access from unauthorized source
@@ -19,7 +19,7 @@ func Auth(req http.Handler) http.Handler {
 				fmt.Sprintf("`Authorization` shouldn't have length 0. header: [%+v]", header))
 			return
 		}
-		if header != viper.GetString(`APIKEY`) {
+		if header != os.Getenv(`APIKEY`) {
 			httputil.NewError(w, http.StatusUnauthorized,
 				httputil.ErrUnauthorized,
 				fmt.Sprintf("Invalid key. key: [%+v]", header))

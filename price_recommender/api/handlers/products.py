@@ -1,3 +1,4 @@
+import logging as log
 import time
 
 from fastapi import APIRouter, Depends
@@ -24,53 +25,56 @@ def get_order_services(db: AsyncIOMotorClient = Depends(get_database)):
     return OrderServices(AttributesOrder, db)
 
 
-async def get_order_idx(
-    db: AsyncIOMotorClient = Depends(get_database),
+async def get_corpus_order_corpus(
+    req: Request,
+    idx: str = "many",
     order_services: OrderServices = Depends(get_order_services),
 ):
-    return [i["value"] for i in await order_services.get_all_docs()]
+    assert idx in ["many", "one"], f"supported `many` and `one` tags, got {idx} instead"
+    body = await req.json()
+    order = [i["value"] for i in await order_services.get_all_docs()]
+    res = dataproc.gen_corpus(body=body, ord_body=order)
+    return res if idx == "many" else res[0]
 
 
 @products_router.post("/")
 async def create_corpus(
     req: Request,
-    db: AsyncIOMotorClient = Depends(get_database),
     corpus_services: CorpusServices = Depends(get_corpus_services),
     order_services: OrderServices = Depends(get_order_services),
 ):
     """generate corpus from database"""
-    content = await req.json()
-    ord_body = await get_order_idx(db, order_services)
-
-    # logic starts here
-    res = dataproc.gen_corpus(body=content, ord_body=ord_body, orders_path=None)
-    # return {"length": len(res), "corpus": res}
-    return {"generated corpus": True}
+    res = await get_corpus_order_corpus(req, order_services=order_services)
+    try:
+        # return {"length": len(res), "corpus": res}
+        await corpus_services.insert_many_descriptions(res)
+        return {"generated corpus": True}
+    except isinstance(res, str):
+        return JSONResponse(content={"info": res}, status_code=404)
+    except Exception as e:
+        log.error(e)
+        return JSONResponse(
+            content={"internal error": True, "exception": e}, status_code=500
+        )
 
 
 @products_router.post("/{idx}")
 async def infer_product(
     req: Request,
     idx: int,
-    db: AsyncIOMotorClient = Depends(get_database),
     corpus_services: CorpusServices = Depends(get_corpus_services),
     order_services: OrderServices = Depends(get_order_services),
 ):
     """infer product given id"""
-    content = await req.json()
-    ord_body = await get_order_idx(db, order_services)
     model = req.app.state.model
-
+    products_list = await corpus_services.get_all_descriptions()
+    res = await get_corpus_order_corpus(req, idx="one", order_services=order_services)
     try:
         start = time.time()
-        res = dataproc.gen_corpus(body=content, ord_body=ord_body, orders_path=None)[0]
         await corpus_services.insert_one_doc(res)
-        products_list = await corpus_services.get_all_descriptions()
-        log.debug(f"Product info: {res['description']}")
-        log.debug(f"Product list: {products_list}")
-        prediction = model.infer(corpus=products_list, products=res["description"])
+        prediction = model.infer(corpus=products_list, products=res)
         log.debug(f"Elapsed time: {(time.time()-start)*1000:.3f}ms")
         return JSONResponse(content=prediction)
     except Exception as exception:
         log.error(exception)
-        raise exception
+        return JSONResponse(content={"error ids": idx}, status_code=404)

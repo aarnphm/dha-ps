@@ -98,8 +98,7 @@ func (p *ProductsHandler) FetchCSV(w http.ResponseWriter, r *http.Request) {
 				product.AttributeValueName.String,
 				strconv.Itoa(product.AttributeID),
 				product.AttributeName,
-				product.CreatedAt.String(),
-				product.UpdatedAt.String(),
+				strconv.Itoa(product.ProductTypeID),
 			}
 			wr.Write(record)
 		}

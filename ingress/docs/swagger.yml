@@ -102,6 +102,10 @@ definitions:
       product_name:
         type: string
         x-go-name: ProductName
+      product_type_id:
+        format: int64
+        type: integer
+        x-go-name: ProductTypeID
     title: Products ...
     type: object
     x-go-package: github.com/aarnphm/dha-ps/ingress/internal/models
@@ -132,7 +136,7 @@ info:
     name: Apache 2.0
     url: https://github.com/aarnphm/dha-ps/blob/master/LICENSE
   title: Ingress Server
-  version: 0.0.1-dev
+  version: 0.0.2-stable
 paths:
   /api/v1/attributes/:
     post:

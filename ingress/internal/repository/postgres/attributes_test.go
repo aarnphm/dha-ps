@@ -8,9 +8,9 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/aarnphm/dha-ps/ingress/internal/models"
 	repository "github.com/aarnphm/dha-ps/ingress/internal/repository/postgres"
-	"github.com/c2fo/testify/assert"
 	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAttributesFetchAll(t *testing.T) {

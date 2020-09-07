@@ -14,6 +14,7 @@ type Products struct {
 	AttributeValueName sql.NullString `json:"attribute_value_name" db:"attribute_value_name"`
 	AttributeID        int            `json:"attribute_id" db:"attribute_id"`
 	AttributeName      string         `json:"attribute_name" db:"attribute_name"`
+	ProductTypeID      int            `json:"product_type_id" db:"product_type_id"`
 	CreatedAt          time.Time      `json:"-" db:"created_at"`
 	UpdatedAt          time.Time      `json:"-" db:"updated_at"`
 }

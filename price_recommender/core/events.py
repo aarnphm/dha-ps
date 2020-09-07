@@ -1,10 +1,9 @@
 import os
-from typing import Callable, List
+from typing import Callable, Dict, List
 
 import numpy as np
 from fastapi import FastAPI
 from loguru import logger as log
-# from price_recommender.nlp.net import SentenceTransformer
 from sentence_transformers import SentenceTransformer, util
 
 from price_recommender.internal.repository.utils import connect, disconnect
@@ -19,17 +18,23 @@ class Model:
             model = "distilbert-base-nli-stsb-mean-tokens"
         self.model = SentenceTransformer(model)
 
-    def infer(self, corpus: List[str], products: str, cluster: int = 5):
+    def infer(self, corpus: List[Dict], products: Dict, cluster: int = 5):
         closest = {}
-        corpus_embedding = self.model.encode(corpus, convert_to_tensor=True)
-        query_embedding = self.model.encode(products, convert_to_tensor=True)
+        res = {i["product_id"]: i["description"] for i in corpus}
+        corpus_embedding = self.model.encode(list(res.values()), convert_to_tensor=True)
+        query_embedding = self.model.encode(
+            products["description"], convert_to_tensor=True
+        )
         cos_scores = util.pytorch_cos_sim(query_embedding, corpus_embedding)[0]
         cos_scores = cos_scores.cpu()
 
         top = np.argpartition(-cos_scores, range(cluster))[0:cluster]
-        for idx in top[0:cluster]:
-            closest[str(cos_scores[idx])] = corpus[idx].strip()
-        return closest
+        for idx in top[1 : cluster + 2]:
+            closest[str(cos_scores[idx])] = list(res.values())[idx].strip()
+        res_idx = {
+            k: list(res.keys())[list(res.values()).index(v)] for k, v in closest.items()
+        }
+        return res_idx
 
 
 def __startup_model__(app: FastAPI) -> None:
@@ -44,7 +49,6 @@ def __shutdown_model__(app: FastAPI) -> None:
 def startup_handler(app: FastAPI) -> Callable:
     async def start_app() -> None:
         connect()
-        log.info("Running inference server...")
         __startup_model__(app)
 
     return start_app
@@ -54,7 +58,6 @@ def shutdown_handler(app: FastAPI) -> Callable:
     @log.catch
     async def close_app() -> None:
         disconnect()
-        log.info("Shuting down...")
         __shutdown_model__(app)
 
     return close_app

@@ -26,8 +26,4 @@ class CorpusServices(MongoCRUD):
 
     async def get_all_descriptions(self, ids=False):
         docs = await super().get_all_docs()
-        return (
-            [str(d[self.idx_params]) for d in docs]
-            if ids
-            else [d[self.change_params] for d in docs]
-        )
+        return [str(d[self.idx_params]) for d in docs] if ids else [d for d in docs]

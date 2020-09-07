@@ -1,3 +1,5 @@
+from loguru import logger as log
+
 import uvicorn
 from fastapi import FastAPI
 

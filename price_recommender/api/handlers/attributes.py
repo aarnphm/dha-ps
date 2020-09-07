@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, Request
-from loguru import logger as log
 
 from price_recommender.internal.domains.attributes import AttributesOrder
-from price_recommender.internal.repository.drivers import AsyncIOMotorClient, get_database
+from price_recommender.internal.repository.drivers import (AsyncIOMotorClient,
+                                                           get_database)
 from price_recommender.internal.repository.mongodb.orders import OrderServices
 
 attributes_router = APIRouter()
