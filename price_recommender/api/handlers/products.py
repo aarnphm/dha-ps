@@ -31,8 +31,8 @@ async def get_corpus_order_corpus(
     order_services: OrderServices = Depends(get_order_services),
 ):
     assert idx in ["many", "one"], f"supported `many` and `one` tags, got {idx} instead"
-    body = await req.json()
     order = [i["value"] for i in await order_services.get_all_docs()]
+    body = await req.json()
     res = dataproc.gen_corpus(body=body, ord_body=order)
     return res if idx == "many" else res[0]
 

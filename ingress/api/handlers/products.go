@@ -62,6 +62,8 @@ func (p *ProductsHandler) FetchAllProducts(w http.ResponseWriter, r *http.Reques
 	if err := json.NewEncoder(b).Encode(res); err != nil {
 		log.Fatalf("Error: [%+v]", err)
 	}
+	log.Infof("Product content: %+v", b)
+	log.Info("Generating corpus...")
 	POSTDownstream(w, r, b)
 }
 
@@ -80,7 +82,7 @@ func (p *ProductsHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		log.Errorf("Error: [%+v]", err)
 	}
 	// Passes downstream for inference
-	log.Info("Getting product info and sends downstream for inference...")
+	log.Info("Sending downstream for inference...")
 	POSTDownstream(w, r, b)
 }
 

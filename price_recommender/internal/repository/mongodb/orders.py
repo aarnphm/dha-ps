@@ -10,7 +10,7 @@ class OrderServices(MongoCRUD):
         for arg in args:
             if not isinstance(arg, AttributesOrder):
                 self.model = AttributesOrder
-        self.collection = "attributes_index"
+        self.collection = "attribute"
         self.idx_params = "name"
         self.change_params = "id"
         self.exchange_params = "value"

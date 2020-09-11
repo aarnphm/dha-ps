@@ -74,9 +74,9 @@ def get_product_description(table: pd.DataFrame, idx: int) -> str:
 
 def convert_to_dataframe(content: t.List[t.Dict], order: list) -> pd.DataFrame:
     # drop value that is null since it is useless anyway
-    df = pd.DataFrame.from_records(
-        null_handler(content), columns=get_columns(ProductsRepository)
-    ).dropna()
+    table_col = get_columns(ProductsRepository)
+    df = pd.DataFrame.from_records(null_handler(content), columns=table_col).dropna()
+    log.debug(df.columns)
     df = df[df["attribute_id"].isin(order)]
     sorter = dict(zip(order, range(len(order))))
     df["attribute_id_rank"] = df["attribute_id"].map(sorter)
