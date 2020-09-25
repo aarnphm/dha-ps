@@ -137,7 +137,7 @@ description = "Non-blocking MongoDB driver for Tornado or asyncio"
 name = "motor"
 optional = false
 python-versions = ">=3.5.2"
-version = "2.2.0"
+version = "2.3.0"
 
 [package.dependencies]
 pymongo = ">=3.11,<4"
@@ -558,7 +558,7 @@ version = "1.0.1"
 dev = ["pytest (>=4.6.2)", "black (>=19.3b0)"]
 
 [metadata]
-content-hash = "f3ee44f5028430f2a399226d0c403ee989cb8ae5a84fe71e0eee358573c848fd"
+content-hash = "9c1bb383804346c257906429fab799d6d56467e9248b01e43eab61e2a2e290f2"
 lock-version = "1.0"
 python-versions = ">=3.7"
 
@@ -625,7 +625,8 @@ loguru = [
     {file = "loguru-0.5.3.tar.gz", hash = "sha256:b28e72ac7a98be3d28ad28570299a393dfcd32e5e3f6a353dec94675767b6319"},
 ]
 motor = [
-    {file = "motor-2.2.0-py3-none-any.whl", hash = "sha256:659ad13c2e2dca19807fbb6d2bb62e4c60f99bb0d43110a6abb8fdd12b644a64"},
+    {file = "motor-2.3.0-py3-none-any.whl", hash = "sha256:428d94750123d19fcd0a89b8671ff9b4656f205217bad9f44161748c64c5fc80"},
+    {file = "motor-2.3.0.tar.gz", hash = "sha256:f1692b760d834707e3477996ce8d407af8cd61c1a2abedbf81c22ef14675e61a"},
 ]
 nltk = [
     {file = "nltk-3.5.zip", hash = "sha256:845365449cd8c5f9731f7cb9f8bd6fd0767553b9d53af9eb1b3abf7700936b35"},
