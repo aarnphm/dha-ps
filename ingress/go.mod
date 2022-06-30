@@ -12,7 +12,7 @@ require (
 	github.com/rakyll/statik v0.1.7
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/viper v1.7.1
-	github.com/stretchr/testify v1.7.2
+	github.com/stretchr/testify v1.8.0
 	golang.org/x/sys v0.0.0-20200819035508-9a32b3aa38f5 // indirect
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
